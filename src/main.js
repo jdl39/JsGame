@@ -1,5 +1,5 @@
 // TODO: Set maxRooms in moveTo to prevent wandering creeps.
-
+// GRUNT DEPLOY SUCCESS!
 
 require("screepsExtentions");
 

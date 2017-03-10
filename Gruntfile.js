@@ -3,12 +3,14 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-screeps')
     grunt.loadNpmTasks('grunt-contrib-concat')
 
+    var branch = grunt.option('branch') || 'codeRewrite';
+
     grunt.initConfig({
         screeps: {
             options: {
                 email: 'jimmyl@microsoft.com',
                 password: 'YUgioh01)!',
-                branch: 'codeRewrite',
+                branch: branch,
                 ptr: false
             },
             dist: {
@@ -21,7 +23,7 @@ module.exports = function(grunt) {
                 options: {
                     separator: "\n\n//---------------------------------------- NEW FILE --------------------------------------------\n",
                 },
-                src: ["src/*.js"],
+                src: ["src/utils/*.js", "src/Creeps/*.js", "src/Structures/*.js", "src/*.js"],
                 dest: "dist/main.js",
             },
         },

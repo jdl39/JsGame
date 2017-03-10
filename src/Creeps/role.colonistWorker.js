@@ -1,6 +1,6 @@
 
 
-var colonistWorker = {
+var roleColonistWorker = {
     run: function(creep) {
         
         creep.checkRoadRepair();

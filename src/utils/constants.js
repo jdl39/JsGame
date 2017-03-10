@@ -76,8 +76,8 @@ var structureConstants = {
     */
     towerSiteCostConstants: {
         COST_FOR_OFF_CENTER: 1,
-        COST_FOR_OFF_SPAWN: 5;
-        COST_FOR_OFF_OTHER_TOWER: -4;
+        COST_FOR_OFF_SPAWN: 5,
+        COST_FOR_OFF_OTHER_TOWER: -4,
     }
 };
 

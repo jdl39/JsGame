@@ -1,3 +1,4 @@
+// Room Object extensions ----------------------------------------
 /**
 * Game RoomObject class
 * @class RoomObject
@@ -9,41 +10,65 @@
 * @abstract
 * @returns {boolean} True if a new creep may place intent.
 */
+// ---------------------------------------------------------------
  
- // Spawn extentions ---------------------------------------------
- StructureSpawn.prototype.energyCapacityIncludingExtentions = function() {
-     var extentions = this.room.find(FIND_MY_STRUCTURES, {filter: function(structure) { return structure.structureType === STRUCTURE_EXTENSION; }});
-     var eCap = this.energyCapacity;
-     for (var i in extentions) {
-         var extention = extentions[i];
-         eCap += extention.energyCapacity;
-     }
-     return eCap;
- }
- 
-  StructureSpawn.prototype.energyIncludingExtentions = function() {
-     var extentions = this.room.find(FIND_MY_STRUCTURES, {filter: function(structure) { return structure.structureType === STRUCTURE_EXTENSION; }});
-     var e = this.energy;
-     for (var i in extentions) {
-         var extention = extentions[i];
-         e += extention.energy;
-     }
-     return e;
- }
- // --------------------------------------------------------------
- 
- // Room extentions ----------------------------------------------
- Room.prototype.soundOffRoles = function() {
-     var myCreeps = this.find(FIND_MY_CREEPS);
-     for (var name in myCreeps) {
-         var c = myCreeps[name];
-         c.soundOff("role");
-     }
- }
- // --------------------------------------------------------------
+// Spawn extentions ---------------------------------------------
+/**
+* Game StructureSpawn class
+* @class StructureSpawn
+*/
 
- // Resource extentions ------------------------------------------
- Resource.prototype.intentAllowed = function() {
+/**
+* Returns the energy capcity of the spawn including any extensions in the room.
+* @returns {number} Energy capcity including extensions.
+*/
+StructureSpawn.prototype.energyCapacityIncludingExtentions = function() {
+    var extentions = this.room.find(FIND_MY_STRUCTURES, {filter: function(structure) {
+        return structure.structureType === STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN;
+    }});
+    var eCap = 0;
+    for (var i in extentions) {
+        var extention = extentions[i];
+        eCap += extention.energyCapacity;
+    }
+    return eCap;
+}
+ 
+/**
+* Returns the available energy in the spawn, including extensions.
+* @returns {number} Available energy.
+*/
+StructureSpawn.prototype.energyIncludingExtentions = function() {
+    var extentions = this.room.find(FIND_MY_STRUCTURES, {filter: function(structure) {
+        return structure.structureType === STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN;
+    }});
+    var e = 0;
+    for (var i in extentions) {
+        var extention = extentions[i];
+        e += extention.energy;
+    }
+    return e;
+}
+// --------------------------------------------------------------
+ 
+// Room extentions ----------------------------------------------
+/**
+* Game Room class
+* @class Room
+*/
+
+// Tells creeps to sound off their roles.
+Room.prototype.soundOffRoles = function() {
+    var myCreeps = this.find(FIND_MY_CREEPS);
+    for (var name in myCreeps) {
+        var c = myCreeps[name];
+        c.soundOff("role");
+    }
+}
+// --------------------------------------------------------------
+
+// Resource extentions ------------------------------------------
+Resource.prototype.intentAllowed = function() {
     var creepsIntent = Utils.creepsIntentOn(target);
     var amountUnclaimed = this.amount;
     for (var i in creepsIntent) {
@@ -51,11 +76,11 @@
         amountUnclaimed -= creep.carryCapacity - _.sum(creep.carry);
     }
     return amountUnclaimed > 0;
- }
- // --------------------------------------------------------------
+}
+// --------------------------------------------------------------
  
- // Game extentions ----------------------------------------------
- Game.stats = function() {
+// Game extentions ----------------------------------------------
+Game.stats = function() {
     var creepRoleCount = {};
     var creepValues = {};
     
@@ -86,11 +111,20 @@
         var pair = sortedValues[i];
         console.log("    " + pair[0] + ": " + pair[1]);
     }
- }
+}
  // --------------------------------------------------------------
 
  // Controller extentions ----------------------------------------
- StructureController.prototype.numAllowedExtentions = function() {
+/**
+* Game StructureController class
+* @class StructureController
+*/
+
+/**
+* Returns the number of extensions allowed in the controller's room.
+* @returns {number}
+*/
+StructureController.prototype.numAllowedExtentions = function() {
     switch(this.level) {
         case 0:
             return 0;
@@ -113,10 +147,14 @@
         default:
             return 0;
     }
- }
- 
- StructureController.prototype.numAllowedTowers = function() {
-     switch(this.level) {
+}
+
+/**
+* Returns the number of towers allowed in the controller's room.
+* @returns {number}
+*/ 
+StructureController.prototype.numAllowedTowers = function() {
+    switch(this.level) {
         case 1:
         case 2:
             return 0;
@@ -130,14 +168,25 @@
             return 3;
         case 8:
             return 6;
-     }
- }
- // --------------------------------------------------------------
+    }
+}
+// --------------------------------------------------------------
 
+// Structure extensions -----------------------------------------
+/**
+* Game Structure class
+* @class Structure
+*/
+
+/**
+* Returns true if the structure is walkable.
+* @returns {boolean}
+*/
 Structure.prototype.isWalkable = function() {
     return this.structureType === STRUCTURE_ROAD ||
         this.structureType === STRUCTURE_CONTAINER ||
         (this.structureType === STRUCTURE_RAMPART && this.my);
 }
+// --------------------------------------------------------------
 
 module.exports.stats = Game.stats;

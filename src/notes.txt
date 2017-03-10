@@ -1,4 +1,6 @@
 Rewrite pass 1:
-Utils.js
-utils.constructionSiteFinder.js
-Memphis.js
+utils
+	Utils.js
+	utils.constructionSiteFinder.js
+	Memphis.js
+	screepsExtentions.js

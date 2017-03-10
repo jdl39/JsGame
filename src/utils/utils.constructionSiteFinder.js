@@ -1,5 +1,10 @@
+/**
+* This namespace has functions with logic for finding optimal construction sites.
+* @namespace
+*/
+var SiteFinder = {};
 
-
+// @cpu AVERAGE * 3 + LOW * (extentions + 1)
 var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	var cost = 0;
 
@@ -12,7 +17,7 @@ var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	}
 
 	// Don't build right next to anything, but try to be as close to everything as possible.
-	var nonWalkableStructures = spawn.room.find(FIND_STRUCTURES, {filter: (s) => { return s.structureType != STRUCTURE_ROAD && s.structureType != STRUCTURE_CONTAINER; }});
+	var nonWalkableStructures = spawn.room.find(FIND_STRUCTURES, {filter: (s) => { return !s.isWalkable(); }});
 	for (var i in nonWalkableStructures) {
 	    if (sitePos.getRangeTo(nonWalkableStructures[i].pos) <= 1) return Number.MAX_SAFE_INTEGER;
 	} 
@@ -34,7 +39,12 @@ var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	return cost;
 }
 
-var _findSiteForExtension = function(spawn) {
+/**
+* Finds a site for an extension.
+* @param spawn {StructureSpawn} The spawn to find the extension for.
+* @returns {RoomPosition} The optimal position for the extension.
+*/
+SiteFinder.findSiteForExtension = function(spawn) {
 	if (!spawn) return null;
 
 	var bestSite = null;
@@ -44,24 +54,57 @@ var _findSiteForExtension = function(spawn) {
 	var pathsToAvoid = [];
 	var sources = spawn.room.find(FIND_SOURCES);
 	for (var i in sources) {
-		pathsToAvoid.push(spawn.pos.findPathTo(sources[i]));
+		pathsToAvoid.push(spawn.pos.findPathTo(sources[i], {ignoreCreeps:true}));
 	}
-	pathsToAvoid.push(spawn.pos.findPathTo(spawn.room.controller));
+	pathsToAvoid.push(spawn.pos.findPathTo(spawn.room.controller, {ignoreCreeps:true}));
 
-	for (var x = 0; x < 50; x += 1) {
-		for (var y = 0; y < 50; y += 1) {
-			var cost = _evalSiteForExtention(spawn.room.getPositionAt(x, y), spawn, extentions, pathsToAvoid);
-			if (cost < bestCost) {
-				bestCost = cost;
-				bestSite = spawn.room.getPositionAt(x, y);
-			}
+	Utils.processAllSquaresInRoom(spawn.room, (squarePos) => {
+		var cost = _evalSiteForExtention(squarePos, spawn, extentions, pathsToAvoid);
+		if (cost < bestCost) {
+			bestCost = cost;
+			bestSite = spawn.room.getPositionAt(x, y);
 		}
-	}
+	})
 
 	return bestSite;
 }
 
-var _continueRoadTo = function(startPos, endPos) {
+var _continueRoadToInSameRoom = function(startPos, endPos) {
+	// Get the path.
+	var path = startPos.findPathTo(endPos, {ignoreCreeps:true});
+
+    for (var pathIndex in path) {
+	    var roadNeeded = true;
+	    var pos = new RoomPosition(path[pathIndex].x, path[pathIndex].y, startPos.roomName);
+	    var objects = pos.look();
+
+	    // If there is a blocking object, we don't need a road here.
+	    for (var objIndex in objects) {
+	    	var obj = objects[objIndex];
+	 	    if (obj.type == LOOK_STRUCTURES || obj.type == LOOK_TERRAIN && obj.terrain == "wall") {
+		   		roadNeeded = false;
+		    	break;
+		    }
+		    if (obj.type == LOOK_CONSTRUCTION_SITES && obj.constructionSite.structureType == STRUCTURE_ROAD) return pos;
+		}
+
+	    if (roadNeeded) {
+		    if (startRoom.createConstructionSite(pos, STRUCTURE_ROAD) == ERR_INVALID_TARGET) continue;
+		    return pos;
+	    }
+	}
+
+	return null;
+}
+
+/**
+* Checks to see if there is a road between two points. If there is a road piece missing, this function will
+* create a new road construction site and return the position of the site.
+* @param startPos {RoomPosition} The position to start the road.
+* @param endPos {RoomPosition} The position to end the road.
+* @returns {RoomPosition} The position of the next road segment to build, or null if the road is complete.
+*/
+SiteFinder.continueRoadTo = function(startPos, endPos) {
     var roomRoute = Game.map.findRoute(startPos.roomName, endPos.roomName);
     for (var routeIndex = 0; routeIndex <= roomRoute.length; routeIndex++) {
         var startRoom = Game.rooms[startPos.roomName];
@@ -70,44 +113,13 @@ var _continueRoadTo = function(startPos, endPos) {
         if (routeIndex < roomRoute.length) {
             dest = startPos.findClosestByPath(startRoom.find(roomRoute[routeIndex].exit), {ignoreCreeps:true});
         }
-        var path = startPos.findPathTo(dest, {ignoreCreeps:true});
-        for (var pathIndex in path) {
-		    var roadNeeded = true;
-		    var pos = new RoomPosition(path[pathIndex].x, path[pathIndex].y, startPos.roomName);
-		    var objects = pos.look();
-		    for (var objIndex in objects) {
-		    	var obj = objects[objIndex];
-		  	    if (obj.type == LOOK_STRUCTURES || obj.type == LOOK_TERRAIN && obj.terrain == "wall") {
-		    		roadNeeded = false;
-			    	break;
-			    }
-			    if (obj.type == LOOK_CONSTRUCTION_SITES && obj.constructionSite.structureType == STRUCTURE_ROAD) return pos;
-		    }
 
-		    if (roadNeeded) {
-			    if (startRoom.createConstructionSite(pos, STRUCTURE_ROAD) == ERR_INVALID_TARGET) continue;
-			    return pos;
-		    }
-	    }
+        var possibleRoad = _continueRoadToInSameRoom(startPos, dest);
+        if (possibleRoad) return possibleRoad;
 	    
 	    if (routeIndex < roomRoute.length) {
 	        var lastPathSquare = new RoomPosition(path[path.length-1].x, path[path.length-1].y, startPos.roomName);
-	        switch(roomRoute[routeIndex].exit) {
-	            case FIND_EXIT_TOP:
-	                startPos = new RoomPosition(lastPathSquare.x, 49, roomRoute[routeIndex].room);
-	                break;
-	            case FIND_EXIT_BOTTOM:
-	                startPos = new RoomPosition(lastPathSquare.x, 0, roomRoute[routeIndex].room);
-	                break;
-	            case FIND_EXIT_LEFT:
-	                startPos = new RoomPosition(49, lastPathSquare.y, roomRoute[routeIndex].room);
-	                break;
-	            case FIND_EXIT_RIGHT:
-	                startPos = new RoomPosition(0, lastPathSquare.y, roomRoute[routeIndex].room);
-	                break;
-	            default:
-	                return ERR_NOT_FOUND;
-	        }
+	        startPos = Utils.getAdjacentSquareInNextRoom(lastPathSquare, roomRoute[routeIndex].room, roomRoute[routeIndex].exit);
 	    }
     }
 
@@ -115,57 +127,49 @@ var _continueRoadTo = function(startPos, endPos) {
 }
 
 var _evalSiteForTower = function(site, otherTowers, roomSpawns) {
-    const COST_FOR_OFF_CENTER = 1;
-    const COST_FOR_OFF_SPAWN = 5;
-    const COST_FOR_OFF_OTHER_TOWER = -4;
-    
     // Make sure we are at least 1 tile from every structure, and not on a structure, and not on a wall.
-    for (var x = site.x - 1; x <= site.x + 1; x++) {
-        if (x < 0 || x >= 50) continue;
-        for (var y = site.y - 1; y <= site.y + 1; y++) {
-            if (y < 0 || y >= 50) continue;
-            var s = new RoomPosition(x, y, site.roomName).lookFor(LOOK_STRUCTURES);
-            if (s.length && (s[0].structureType !== STRUCTURE_ROAD || (x == site.x && y == site.y))) {
-                return Number.MAX_SAFE_INTEGER;
-            }
+    var badSite = false;
+    Utils.processNearby(site, (s) => {
+    	var structures = s.lookFor(LOOK_STRUCTURES);
+    	if (structures.length && (structures[0].structureType !== STRUCTURE_ROAD || (x == site.x && y == site.y))) {
+            badSite = true;
+            return true;
         }
-    }
+    });
+    if (badSite) return Number.MAX_SAFE_INTEGER;
     
     if (Game.map.getTerrainAt(site) == "wall") return Number.MAX_SAFE_INTEGER;
     
-    var cost = COST_FOR_OFF_CENTER * site.getRangeTo(24, 24);
+    var cost = structureConstants.towerSiteCostConstants.COST_FOR_OFF_CENTER * site.getRangeTo(24, 24);
     for (var i in otherTowers) {
-        cost += COST_FOR_OFF_OTHER_TOWER * site.getRangeTo(otherTowers[i]);
+        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_OTHER_TOWER * site.getRangeTo(otherTowers[i]);
     }
     for (var i in roomSpawns) {
-        cost += COST_FOR_OFF_SPAWN * site.getRangeTo(roomSpawns[i]);
+        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_SPAWN * site.getRangeTo(roomSpawns[i]);
     }
     
     return cost;
 }
 
-var _findSiteForTower = function(room) {
+/**
+* Finds the optimal site for a tower.
+* @param room {Room} The room to place the tower.
+* @returns {RoomPosition} The optimal position for the tower, or null.
+*/
+SiteFinder.findSiteForTower = function(room) {
     var myStructures = room.find(FIND_MY_STRUCTURES);
     var otherTowers = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_TOWER;});
     var roomSpawns = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_SPAWN;});
     
     var bestCost = Number.MAX_SAFE_INTEGER;
     var bestSite = null;
-    for (var x = 0; x < 50; x++) {
-        for (var y = 0; y < 50; y++) {
-            var siteCost = _evalSiteForTower(room.getPositionAt(x, y), otherTowers, roomSpawns);
-            if (siteCost < bestCost) {
-                bestCost = siteCost;
-                bestSite = room.getPositionAt(x, y);
-            }
+    Utils.processAllSquaresInRoom(room, (site) => {
+    	var siteCost = _evalSiteForTower(site, otherTowers, roomSpawns);
+        if (siteCost < bestCost) {
+            bestCost = siteCost;
+            bestSite = site;
         }
-    }
+    });
     
     return bestSite;
 }
-
-var siteFinder = {
-    findSiteForExtension: _findSiteForExtension,
-    continueRoadTo: _continueRoadTo,
-    findSiteForTower: _findSiteForTower,
-};

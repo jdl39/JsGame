@@ -37,6 +37,7 @@ Utils.bodyCost = function(body) {
 /** This callback is called by Utils.processNearby
 * @callback Utils.pNearbyCb
 * @param pos {RoomPosition}
+* @returns {boolean|void} Returns true if we should stop processing.
 */
 
 /**
@@ -54,7 +55,20 @@ Utils.processNearby = function(pos, callback, includePos) {
         for (var y = pos.y - 1; y <= pos.y + 1; y++) {
             if (y < 0 || y >= 50) continue;
             if (x == pos.x && y == pos.y && !includePos) continue;
-            callback(new RoomPosition(x, y, pos.roomName));
+            if (callback(new RoomPosition(x, y, pos.roomName))) return;
+        }
+    }
+}
+
+/**
+* Similar to processNearby, but passes every position in a room to a callback.
+* @param room {Room} The room
+* @param callback {pNearbyCp} The function to call.
+*/
+Utils.processAllSquaresInRoom = function(room, callback) {
+    for (var x = 0; x < 50; x += 1) {
+        for (var y = 0; y < 50; y += 1) {
+            if (callback(room.getPositionAt(x, y))) return;
         }
     }
 }
@@ -64,6 +78,7 @@ Utils.processNearby = function(pos, callback, includePos) {
 * Currently, that means how many open spaces are
 * around it.
 * @param target {RoomObject} The target to calculate allowed intent for.
+* @cpu AVERAGE * 9
 */
 Utils.recalcAllowedIntent = function(target) {
     var allowed = 0;
@@ -138,6 +153,7 @@ Utils.sortObjectByProperties = function(object) {
 * @param path Path provided by any of the findPath functions.
 * @param pos {RoomPosition} The position to look for.
 * @returns {boolean} True if the path contains pos.
+* @cpu AVERAGE
 */
 Utils.pathContainsPos = function(path, pos) {
     for (var i in path) {
@@ -151,4 +167,27 @@ Utils.pathContainsPos = function(path, pos) {
 */
 Utils.onTick = function() {
     Memphis.repairUpdate();
+}
+
+/**
+* Gets the adjacent square in the next room given a position, the next room name, and
+* the exit direction.
+* @param pos {RoomPosition} The exit position in the initial room.
+* @param nextRoomName {string} The name of the next room.
+* @param exitType One of the FIND_* constants describing the exit direction.
+* @returns {RoomPosition} The position in the other room. ERR_NOT_FOUND if exitType is bad.
+*/
+Utils.getAdjacentSquareInNextRoom = function(pos, nextRoomName, exitType) {
+    switch(exitType) {
+        case FIND_EXIT_TOP:
+            return new RoomPosition(pos.x, 49, nextRoomName);
+        case FIND_EXIT_BOTTOM:
+            return new RoomPosition(pos.x, 0, nextRoomName);
+        case FIND_EXIT_LEFT:
+            return new RoomPosition(49, pos.y, nextRoomName);
+        case FIND_EXIT_RIGHT:
+            return new RoomPosition(0, pos.y, nextRoomName);
+        default:
+            return ERR_NOT_FOUND;
+    }
 }

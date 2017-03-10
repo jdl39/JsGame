@@ -19,7 +19,7 @@ Memphis.keyNames = {
 * @param [memoryDefault=EmptyObject] {any} The default value to set if undefined.
 * @param [memoryObject=Memory] {Object} The memory object to check. Top level Memory by default.
 */
-Memphis.ensureValue(key, memoryDefault, memoryObject) {
+Memphis.ensureValue = function(key, memoryDefault, memoryObject) {
 	if (typeof memoryDefault == "undefined") memoryDefault = {};
 	if (typeof memoryObject == "undefined") memoryObject = Memory;
 	if (typeof memoryObject[key] === "undefined") memoryObject[key] = memoryDefault;

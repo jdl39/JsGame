@@ -49,6 +49,7 @@ var spawnRoleDefault = {
 	    }
 	    
 	    var neededEnergy = spawn.memory.emergencyEnergy ? spawn.memory.emergencyEnergy : 0;
+	    var emergencyEnergy = neededEnergy;
 	    var creepTypes = [roleNames.HARVESTER, roleNames.MILITIA, roleNames.UPGRADER, roleNames.BUILDER];
 	    var creepNums = [numHarvesters, numMilitia, numUpgraders, numBuilders];
 	    var createResult = null;
@@ -65,7 +66,7 @@ var spawnRoleDefault = {
 	    }
 	    
 	    // Then, see if we have any colonies we need to upkeep.
-	    if (createResult === null || typeof createResult.name !== "string") {
+	    if (neededEnergy <= emergencyEnergy) {
 	        if (typeof spawn.memory.colonies === "undefined") spawn.memory.colonies = {};
 	        for (var colonyIndex in spawn.memory.colonies) {
 	            var colony = spawn.memory.colonies[colonyIndex];

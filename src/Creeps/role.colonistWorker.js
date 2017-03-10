@@ -64,7 +64,7 @@ var roleColonistWorker = {
                 // If not, continue the roads.
                 if (!roadToBuild) {
                     if (mySource) { // TODO: Fix this hack! If no one is in the room with the source, we forget where it is.
-                        var nextRoadSite = siteFinder.continueRoadTo(mySource.pos, homeSpawn.pos);
+                        var nextRoadSite = SiteFinder.continueRoadTo(mySource.pos, homeSpawn.pos);
                         if (!nextRoadSite) {
                             homeSpawn.memory.hasRoadsTo[creep.memory.mySource] = true;
                             homeSpawn.memory.colonies[creep.memory.colonyIndex].roadsBuilt = true;

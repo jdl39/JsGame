@@ -30,7 +30,7 @@ var roleBuilder = {
 	    	    var numTowers = creep.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_TOWER;}}).length;
 	    	    var numAllowedTowers = creep.room.controller.numAllowedTowers();
 	    	    if (numTowers < numAllowedTowers) {
-	    	        var bestSite = siteFinder.findSiteForTower(creep.room);
+	    	        var bestSite = SiteFinder.findSiteForTower(creep.room);
 	    	        if (bestSite) {
 	    	            creep.room.createConstructionSite(bestSite, STRUCTURE_TOWER);
 	    	            Memory.GlobalCreepMemory.foundConstructionSitesForRoom[creep.room.id] = true;
@@ -43,7 +43,7 @@ var roleBuilder = {
 	    		var numExtentions = creep.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_EXTENSION;}}).length;
 	    		var numAllowedExtentions = creep.room.controller.numAllowedExtentions();
 	    		if (numExtentions < numAllowedExtentions) {
-	    			var bestSite = siteFinder.findSiteForExtension(creep.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_SPAWN;}})[0]);
+	    			var bestSite = SiteFinder.findSiteForExtension(creep.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_SPAWN;}})[0]);
 	    			if (bestSite) {
 	    				creep.room.createConstructionSite(bestSite, STRUCTURE_EXTENSION);
 	    	            Memory.GlobalCreepMemory.foundConstructionSitesForRoom[creep.room.id] = true;
@@ -56,19 +56,19 @@ var roleBuilder = {
 	    		var spawn = creep.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_SPAWN;}})[0];
 	    		if (typeof spawn.memory.hasRoadsTo === "undefined") spawn.memory.hasRoadsTo = {};
 	    		var controller = creep.room.controller;
-	    		if (!spawn.memory.hasRoadsTo[controller.id] && !siteFinder.continueRoadTo(spawn.pos, controller.pos)) {
+	    		if (!spawn.memory.hasRoadsTo[controller.id] && !SiteFinder.continueRoadTo(spawn.pos, controller.pos)) {
 	    			spawn.memory.hasRoadsTo[controller.id] = true;
 	    		}
 	    		var sources = creep.room.find(FIND_SOURCES);
 	    		for (var i in sources) {
-	    			if (!spawn.memory.hasRoadsTo[sources[i].id] && !siteFinder.continueRoadTo(spawn.pos, sources[i].pos)) {
+	    			if (!spawn.memory.hasRoadsTo[sources[i].id] && !SiteFinder.continueRoadTo(spawn.pos, sources[i].pos)) {
 	    				spawn.memory.hasRoadsTo[sources[i].id] = true;
 	    			}
 	    		}
 	    		var myStructures = creep.room.find(FIND_MY_STRUCTURES);
 	    		for (var i in myStructures) {
 	    		    if (myStructures[i] == spawn) continue;
-	    		    if (!spawn.memory.hasRoadsTo[myStructures[i].id] && !siteFinder.continueRoadTo(spawn.pos, myStructures[i].pos)) {
+	    		    if (!spawn.memory.hasRoadsTo[myStructures[i].id] && !SiteFinder.continueRoadTo(spawn.pos, myStructures[i].pos)) {
 	    		        spawn.memory.hasRoadsTo[myStructures[i].id] = true;
 	    		    }
 	    		}

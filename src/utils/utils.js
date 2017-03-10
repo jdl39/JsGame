@@ -1,5 +1,8 @@
-
-
+/**
+* Provides the costs of the creep body parts.
+* Keys are the body part constants
+* @constant {Object<BodyType, number>}
+*/
 var BODY_PART_COSTS = {};
 BODY_PART_COSTS[MOVE] = 50;
 BODY_PART_COSTS[WORK] = 100;
@@ -10,46 +13,86 @@ BODY_PART_COSTS[HEAL] = 250;
 BODY_PART_COSTS[CLAIM] = 600;
 BODY_PART_COSTS[TOUGH] = 10;
 
-var _calcAllowedIntent = function(target) {
-    var allowed = 0;
-    var targetX = target.pos.x;
-    var targetY = target.pos.y;
-    for (var x = targetX - 1; x <= targetX + 1; x += 1) {
+/**
+* This namespace provides utility functions.
+*
+* @namespace
+*/
+var Utils = {};
+
+/**
+* Gets the cost for a creep body
+* @param body {Array<BodyType>} The body to cost
+* @returns {number} The cost of the body
+*/
+Utils.bodyCost = function(body) {
+    var cost = 0;
+    for (var i in body) {
+        var part = body[i];
+        cost += BODY_PART_COSTS[part];
+    }
+    return cost;
+}
+
+/** This callback is called by Utils.processNearby
+* @callback Utils.pNearbyCb
+* @param pos {RoomPosition}
+*/
+
+/**
+* Calls a callback function on all squares surrounding a provided
+* square.
+* @param pos {RoomPosition} The position to process around.
+* @param callback {pNearbyCp} The function to call on nearby pos.
+* @param [includePos=true] {boolean} Whether pos should be passed to the callback as well.
+*/ 
+Utils.processNearby = function(pos, callback, includePos) {
+    if (typeof includePos === "undefined") includePos = true;
+
+    for (var x = pos.x - 1; x <= pos.x + 1; x++) {
         if (x < 0 || x >= 50) continue;
-        for (var y = targetY - 1; y <= targetY + 1; y += 1) {
+        for (var y = pos.y - 1; y <= pos.y + 1; y++) {
             if (y < 0 || y >= 50) continue;
-            var blocker = false;
-            var objects = new RoomPosition(x, y, target.room.name).look();
-            for (var i in objects) {
-                var object = objects[i];
-                if (object.type === "structure" && object.structure.structureType !== STRUCTURE_ROAD) {
-                    blocker = true;
-                }
-                if (object.type === "terrain" && object.terrain === "wall") {
-                    blocker = true;
-                }
-            }
-            if (!blocker) {
-                allowed += 1;
-            }
+            if (x == pos.x && y == pos.y && !includePos) continue;
+            callback(new RoomPosition(x, y, pos.roomName));
         }
     }
-    Memory.allowedIntent[target.id] = allowed;
 }
 
-var _allowedIntent = function(target) {
-    if (typeof Memory.allowedIntent === "undefined") {
-        Memory.allowedIntent = {};
-    }
-    
-    if (typeof Memory.allowedIntent[target.id] === "undefined") {
-        _calcAllowedIntent(target);
-    }
-    
-    return Memory.allowedIntent[target.id];
+/**
+* Calculates the allowed intent on an object.
+* Currently, that means how many open spaces are
+* around it.
+* @param target {RoomObject} The target to calculate allowed intent for.
+*/
+Utils.recalcAllowedIntent = function(target) {
+    var allowed = 0;
+    Utils.processNearby(target.pos, (nearbyPos) => {
+        var blocker = false;
+        var objects = nearbyPos.look();
+        for (var i in objects) {
+            var object = objects[i];
+            if (object.type === "structure" && object.structure.structureType !== STRUCTURE_ROAD && object.structure.structureType !== STRUCTURE_CONTAINER) {
+                blocker = true;
+            }
+            if (object.type === "terrain" && object.terrain === "wall") {
+                blocker = true;
+            }
+        }
+        if (!blocker) {
+            allowed += 1;
+        }
+    });
+
+    Memphis.setAllowedIntent(target, allowed);
 }
 
-var _creepsIntentOn = function(target) {
+/**
+* Retrieves an array of Creep objects intent on the target.
+* @param target {RoomObject} The target.
+* @returns {Array<Creep>} Intent Creeps.
+*/
+Utils.creepsIntentOn = function(target) {
     var creeps = [];
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
@@ -61,24 +104,27 @@ var _creepsIntentOn = function(target) {
     return creeps;
 }
 
-var _filterByIntent = function(targets) {
+/**
+* Filters targets by calling the intentAllowed function on each.
+* By default it uses the number of walkable spaces around the target.
+* @param targets {Array<RoomObject>} The targets to filter.
+* @returns {Array<RoomObject>} The targets that allow intent.
+*/
+Utils.filterByIntent = function(targets) {
     return _.filter(targets, function(target) {
-        var creepsIntent = _creepsIntentOn(target);
-        
-        if (target instanceof Resource) {
-            var amountUnclaimed = target.amount;
-            for (var i in creepsIntent) {
-                var creep = creepsIntent[i];
-                amountUnclaimed -= creep.carryCapacity - _.sum(creep.carry, function(obj) {return obj.amount});
-            }
-            return amountUnclaimed > 0;
-        }
-        
-        return _allowedIntent(target) > creepsIntent.length;
+        if (typeof target.intentAllowed === "function") return target.intentAllowed();
+        var creepsIntent = Utils.creepsIntentOn(target);
+        return Memphis.getAllowedIntent(target) > creepsIntent.length;
     });
 }
 
-var _sortObjectByProperties = function(object) {
+/**
+* Takes an object and returns an array of key-value pairs sorted by
+* key.
+* @param object {Object} The object to sort.
+* @returns {Array<Object>} Array of key-value pairs sorted by key.
+*/
+Utils.sortObjectByProperties = function(object) {
     var sortable = [];
     for (var prop in object) {
         sortable.push([prop, object[prop]]);
@@ -87,77 +133,22 @@ var _sortObjectByProperties = function(object) {
     return sortable;
 }
 
-var _pathContainsPos = function(path, pos) {
+/**
+* Returns true if the provided path contains the pos.
+* @param path Path provided by any of the findPath functions.
+* @param pos {RoomPosition} The position to look for.
+* @returns {boolean} True if the path contains pos.
+*/
+Utils.pathContainsPos = function(path, pos) {
     for (var i in path) {
         if (path[i].x == pos.x && path[i].y == pos.y) return true;
     }
     return false;
 }
 
-var _markForRepair = function(structure) {
-    if (typeof Memory.needsRepair === "undefined") Memory.needsRepair = {};
-    Memory.needsReair[structure.id] = true;
+/**
+* Global onTick vs Class specific onTick. Things that need to happen every tick, once per tick.
+*/
+Utils.onTick = function() {
+    Memphis.repairUpdate();
 }
-
-// Things that should happen every tick, globally
-var _repairUpdate = function() {
-    if (Memory.roomToRoadCheckCounter) {
-        for (var roomName in Memory.roomToRoadCheckCounter) {
-            Memory.roomToRoadCheckCounter[roomName] -= 1;
-            if (Memory.roomToRoadCheckCounter[roomName] <= 0) delete Memory.roomToRoadCheckCounter[roomName];
-        }
-    }
-    
-    if (typeof Memory.needsRepair === "undefined") Memory.needsRepair = {};
-    for (var id in Memory.needsRepair) {
-        var object = Game.getObjectById(id);
-        if (!object ||
-            !(object instanceof Structure) ||
-            object.hits == object.maxHits) {
-            delete Memory.needsRepair[id];
-        }
-    }
-    
-    for (var id in Game.structures) {
-        var structure = Game.structures[id];
-        if (structure.hits * 1.0 / structure.hitsMax <= structureConstants.OWNED_STRUCTURE_REPAIR_LIMIT) {
-            Memory.needsRepair[id] = true;
-        }
-    }
-}
-var _onTick = function() {
-    _repairUpdate();
-}
-
-var utils = {
-    findClosest: function(pos, objects) {
-        var close = pos.findClosestByPath(objects, {ignoreCreeps:true});
-        if (close == null) {
-            close = pos.findClosestByRange(objects);
-        }
-        return close;
-    },
-    
-    bodyCost: function(body) {
-        var cost = 0;
-        for (var i in body) {
-            var part = body[i];
-            cost += BODY_PART_COSTS[part]
-        }
-        return cost;
-    },
-    
-    creepsIntentOn: _creepsIntentOn,
-    
-    allowedIntent: _allowedIntent,
-    
-    recalcAllowedIntent: _calcAllowedIntent,
-    
-    filterByIntent: _filterByIntent,
-    
-    sortObjectByProperties: _sortObjectByProperties,
-
-    pathContainsPos: _pathContainsPos,
-    markForRepair: _markForRepair,
-    onTick: _onTick,
-};

@@ -23,7 +23,13 @@ module.exports = function(grunt) {
                 options: {
                     separator: "\n\n//---------------------------------------- NEW FILE --------------------------------------------\n",
                 },
-                src: ["src/utils/*.js", "src/Creeps/*.js", "src/Structures/*.js", "src/*.js"],
+                // Make sure dependencies go earlier in the list.
+                src: [
+                        "src/utils/*.js",
+                        "src/Creeps/*.js",
+                        "src/Structures/*.js",
+                    "src/*.js",
+                ],
                 dest: "dist/main.js",
             },
         },

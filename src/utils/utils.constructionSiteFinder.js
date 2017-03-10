@@ -28,7 +28,7 @@ var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	// Also, don't build on reserved paths.
 	for (var i in pathsToAvoid) {
 		var path = pathsToAvoid[i];
-		if (utils.pathContainsPos(path, sitePos)) return Number.MAX_SAFE_INTEGER;
+		if (Utils.pathContainsPos(path, sitePos)) return Number.MAX_SAFE_INTEGER;
 	}
 
 	return cost;

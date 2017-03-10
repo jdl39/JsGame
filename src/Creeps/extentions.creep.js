@@ -173,11 +173,12 @@ Creep.onTick = function() {
     var resourceDrops = this.room.find(FIND_DROPPED_ENERGY);
     
     var allSources = sources.concat(resourceDrops);
-    allSources = utils.filterByIntent(allSources);
+    allSources = Utils.filterByIntent(allSources);
     
-    var source = utils.findClosest(this.pos, allSources);
+    // REWRITETODO: Decomp this "intent backoff" functionality.
+    var source = this.pos.findClosestByPath(allSources, {ignoreCreeps: true});
     if (!source) {
-        source = utils.findClosest(this.pos, sources);
+    	source = this.pos.findClosestByPath(sources, {ignoreCreeps:true});
     }
     
     var err = OK;
@@ -229,9 +230,9 @@ Creep.onTick = function() {
     var energyTargets = sources.concat(spawns);
     energyTargets = energyTargets.concat(containers);
     energyTargets = energyTargets.concat(resourceDrops);
-    energyTargets = utils.filterByIntent(energyTargets);
+    energyTargets = Utils.filterByIntent(energyTargets);
     
-    var target = utils.findClosest(this.pos, energyTargets);
+    var target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
     
     if (target && this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) {
         this.moveTo(target);
@@ -240,7 +241,7 @@ Creep.onTick = function() {
  
  Creep.prototype.buildNearestSite = function(siteFilter) {
     var targets = this.room.find(FIND_CONSTRUCTION_SITES, {filter: siteFilter});
-    var target = utils.findClosest(this.pos, targets);
+    var target = this.pos.findClosestByPath(targets, {ignoreCreeps: true});
     if(target != null) {
         if(this.build(target) == ERR_NOT_IN_RANGE) {
             this.moveTo(target);
@@ -370,7 +371,7 @@ Creep.prototype.timeToDest = function() {
          return (s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && s.hits <= s.hitsMax * structureConstants.ROAD_REPAIR_LIMIT; 
      }});
      for (var i in roadsToRepair) {
-         utils.markForRepair(roadsToRepair[i]);
+         Memphis.markForRepair(roadsToRepair[i]);
      }
      Memory.roomToRoadCheckCounter[this.room.name] = structureConstants.ROAD_REPAIR_COUNTER;
  }

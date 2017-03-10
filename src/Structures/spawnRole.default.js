@@ -7,17 +7,17 @@ var checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMemory) 
     var errCode = OK;
     if (numNeeded > 0) {
         var variant = 0;
-        eNeeded = utils.bodyCost(creepBodies[roleName][variant]);
+        eNeeded = Utils.bodyCost(creepBodies[roleName][variant]);
         while (spawn.energyCapacityIncludingExtentions() < eNeeded && variant < creepBodies[roleName].length - 1) {
             variant += 1;
-            eNeeded = utils.bodyCost(creepBodies[roleName][variant]);
+            eNeeded = Utils.bodyCost(creepBodies[roleName][variant]);
         }
         
         // If we are really low on workers, we make a littler dude.
         if (numNeeded > 1) {
             variant += numNeeded - 1;
             if (variant >= creepBodies[roleName].length) variant = creepBodies[roleName].length - 1;
-            eNeeded = utils.bodyCost(creepBodies[roleName][variant]);
+            eNeeded = Utils.bodyCost(creepBodies[roleName][variant]);
         }
         
         // TODO: maybe re-add die out logic?

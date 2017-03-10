@@ -1,4 +1,14 @@
+/**
+* Game RoomObject class
+* @class RoomObject
+*/
 
+/**
+* Determines if a new creep may place intent on this object.
+* @function RoomObject#intentAllowed
+* @abstract
+* @returns {boolean} True if a new creep may place intent.
+*/
  
  // Spawn extentions ---------------------------------------------
  StructureSpawn.prototype.energyCapacityIncludingExtentions = function() {
@@ -31,6 +41,18 @@
      }
  }
  // --------------------------------------------------------------
+
+ // Resource extentions ------------------------------------------
+ Resource.prototype.intentAllowed = function() {
+    var creepsIntent = Utils.creepsIntentOn(target);
+    var amountUnclaimed = this.amount;
+    for (var i in creepsIntent) {
+        var creep = creepsIntent[i];
+        amountUnclaimed -= creep.carryCapacity - _.sum(creep.carry);
+    }
+    return amountUnclaimed > 0;
+ }
+ // --------------------------------------------------------------
  
  // Game extentions ----------------------------------------------
  Game.stats = function() {
@@ -44,7 +66,7 @@
         }
         creepRoleCount[creep.memory.role] += 1;
         
-        var creepValue = utils.bodyCost(creep.rawBody());
+        var creepValue = Utils.bodyCost(creep.rawBody());
         if (!creepValues[creepValue]) {
             creepValues[creepValue] = 0;
         }
@@ -59,7 +81,7 @@
     
     // Values.
     console.log("\nCreep Value Count:\n");
-    var sortedValues = utils.sortObjectByProperties(creepValues);
+    var sortedValues = Utils.sortObjectByProperties(creepValues);
     for (var i in sortedValues) {
         var pair = sortedValues[i];
         console.log("    " + pair[0] + ": " + pair[1]);

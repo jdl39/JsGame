@@ -1,7 +1,7 @@
 // TODO: Set maxRooms in moveTo to prevent wandering creeps.
 module.exports.loop = function () {
     PathFinder.use(true);
-    utils.onTick();
+    Utils.onTick();
 
     // Cleanup bad memory.
     for (var key in Memory.creeps) {

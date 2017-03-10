@@ -22,7 +22,7 @@ module.exports = function(grunt) {
                     separator: "\n\n//---------------------------------------- NEW FILE --------------------------------------------\n",
                 },
                 src: ["src/*.js"],
-                dest: "dist/naiveBayesScreeps.js",
+                dest: "dist/main.js",
             },
         },
     });

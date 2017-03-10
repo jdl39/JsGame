@@ -1,7 +1,3 @@
-var roleNames = require("constants.roleNames");
-var creepBodies = require("constants.creepBodies");
-var utils = require("utilities");
-
 // Returns true if creep is needed, false otherwise.
 var checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMemory) {
     if (typeof additionalMemory === "undefined") additionalMemory = {};
@@ -36,7 +32,7 @@ var checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMemory) 
     return {e: eNeeded, name: errCode};
 }
 
-var defaultSpawn = {
+var spawnRoleDefault = {
 	run: function(spawn, numHarvesters, numBuilders, numUpgraders, numMilitia) {
 	    // First make sure everything essential is spawned.
 	    if (numHarvesters === undefined) {
@@ -103,5 +99,3 @@ var defaultSpawn = {
 	    spawn.memory.reservedEnergy = neededEnergy;
 	}
 }
-
-module.exports = defaultSpawn;

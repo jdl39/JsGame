@@ -1,16 +1,4 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('screepsExtentions');
- * mod.thing == 'a thing'; // true
- */
 
- require("extentions.creep");
- 
- var visualConstants = require("constants.visuals");
- var utils = require("utilities");
  
  // Spawn extentions ---------------------------------------------
  StructureSpawn.prototype.energyCapacityIncludingExtentions = function() {
@@ -124,6 +112,4 @@
  }
  // --------------------------------------------------------------
 
-module.exports = {
-    stats: Game.stats,
-};
+module.exports.stats = Game.stats;

@@ -3,10 +3,10 @@
 // most of the default methods to extend them with additional behavior and adds new
 // functions for convenience.
 
-var utils = require("utilities");
-var visualConstants = require("constants.visuals");
-var roleNames = require("constants.roleNames");
-var structureConstants = require("constants.structures");
+/**
+* The creep built-in class.
+* @class Creep
+*/
 
 // ------------------------------------------------------
 // Method overrides
@@ -124,12 +124,19 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
 // ------------------------------------------------------
 // New methods
 // ------------------------------------------------------
+/**
+* Function called for every tick.
+* @memberof Creep
+*/
 Creep.onTick = function() {
     if (typeof Memory.GlobalCreepMemory === "undefined") Memory.GlobalCreepMemory = {};
     Memory.GlobalCreepMemory.foundConstructionSitesForRoom = {};
 }
 
-// Actions to be performed at the beginning of a tick.
+/** Actions to be performed at the beginning of a tick.
+* @memberof Creep
+* @instance
+*/
  Creep.prototype.onTick = function() {
     this.memory.intention = null;
     
@@ -137,6 +144,11 @@ Creep.onTick = function() {
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});
  }
  
+ /** Performs a harvest or a transfer on the target, depending on its type.
+ * @memberof Creep
+ * @instance
+ * @param target {Source | Resource | Structure} The target to harvest/withdraw from.
+ */
  Creep.prototype.harvestOrWithdrawEnergy = function(target) {
  	if (target instanceof Resource) {
  		return this.pickup(target);
@@ -149,6 +161,11 @@ Creep.onTick = function() {
     return this.withdraw(target, RESOURCE_ENERGY);
  }
  
+ /** Searches for nearest source or dropped resource and attempts to harvest from
+ * it.
+ * @memberof Creep
+ * @instance
+ */
  Creep.prototype.harvestFromNearestSource = function() {
     var sources = this.room.find(FIND_SOURCES);
     sources = _.filter(sources, function(source) { return source.energy > 0;});

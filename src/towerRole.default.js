@@ -1,13 +1,6 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('towerRole.default');
- * mod.thing == 'a thing'; // true
- */
 
-module.exports = {
+
+var towerRoleDefault = {
     run: function(tower) {
         // First, kill enemies.
         var enemies = tower.room.find(FIND_HOSTILE_CREEPS);

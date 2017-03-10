@@ -1,13 +1,4 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('utilities');
- * mod.thing == 'a thing'; // true
- */
- 
-var structureConstants = require('constants.structures');
+
 
 var BODY_PART_COSTS = {};
 BODY_PART_COSTS[MOVE] = 50;
@@ -138,7 +129,7 @@ var _onTick = function() {
     _repairUpdate();
 }
 
-module.exports = {
+var utils = {
     findClosest: function(pos, objects) {
         var close = pos.findClosestByPath(objects, {ignoreCreeps:true});
         if (close == null) {

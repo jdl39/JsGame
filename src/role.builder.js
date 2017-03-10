@@ -1,5 +1,5 @@
-var utils = require("utilities");
-var siteFinder = require("utils.constructionSiteFinder");
+// roleBuilder
+// Contains the logic for builder creeps.
 
 var roleBuilder = {
 
@@ -88,5 +88,3 @@ var roleBuilder = {
 	    }
 	}
 };
-
-module.exports = roleBuilder;

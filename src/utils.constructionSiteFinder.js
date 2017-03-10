@@ -1,13 +1,4 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('utils.constructionSiteFinder');
- * mod.thing == 'a thing'; // true
- */
- 
-var utils = require("utilities");
+
 
 var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	var cost = 0;
@@ -173,7 +164,7 @@ var _findSiteForTower = function(room) {
     return bestSite;
 }
 
-module.exports = {
+var siteFinder = {
     findSiteForExtension: _findSiteForExtension,
     continueRoadTo: _continueRoadTo,
     findSiteForTower: _findSiteForTower,

@@ -1,22 +1,4 @@
 // TODO: Set maxRooms in moveTo to prevent wandering creeps.
-// GRUNT DEPLOY SUCCESS!
-
-require("screepsExtentions");
-
-var spawnRoleDefault = require('spawnRole.default');
-var towerRoleDefault = require('towerRole.default');
-
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
-var roleMilitia = require('role.militia');
-var roleColonistWorker = require('role.colonistWorker');
-var roleColonistTrader = require('role.colonistTrader');
-
-var roleNames = require('constants.roleNames');
-
-var utils = require('utilities');
-
 module.exports.loop = function () {
     PathFinder.use(true);
     utils.onTick();

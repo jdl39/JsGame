@@ -1,5 +1,6 @@
 Rewrite pass 1:
 utils
+	constants.js
 	Utils.js
 	utils.constructionSiteFinder.js
 	Memphis.js

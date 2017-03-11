@@ -26,6 +26,48 @@ Memphis.ensureValue = function(key, memoryDefault, memoryObject) {
 }
 
 /**
+* Takes either an array of ids or an object with ids as properties
+* and removes any ids that no longer correspond with game objects.
+* @param memObj {Object|Array} What to remove dead ids from.
+*/
+Memphis.removeDeadObjectsById = function(memObj) {
+	var iterationObject = memObj;
+	if (typeof memObj == "object") iterationObject = Object.keys(memObj);
+	for (var i = 0; i < iterationObject.length; i++) {
+		var id = iterationObject[i];
+		if (!Game.getObjectById(id)) {
+			if (memObj instanceof Array) {
+				memObj.splice(i, 1);
+				i--;
+			} else {
+				delete memObj[id];
+			}
+		}
+	}
+}
+
+/**
+* Takes either an array of creep names or an object with creep names as properties
+* and removes any names that no longer correspond with live creeps.
+* @param memObj {Object|Array} What to remove dead names from.
+*/
+Memphis.removeDeadCreepsByName = function(memObj) {
+	var iterationObject = memObj;
+	if (typeof memObj == "object") iterationObject = Object.keys(memObj);
+	for (var i = 0; i < iterationObject.length; i++) {
+		var name = iterationObject[i];
+		if (!Game.creeps[name]) {
+			if (memObj instanceof Array) {
+				memObj.splice(i, 1);
+				i--;
+			} else {
+				delete memObj[id];
+			}
+		}
+	}
+}
+
+/**
 * Sets the allowed intent for a target.
 * @param target {RoomObject} The target
 * @param allowed {number} Number of allowed intenders.
@@ -67,7 +109,22 @@ Memphis.needsRepair = function(structure) {
 }
 
 /**
+* Returns an array of structures that have been marked for repair.
+* @returns {Array<Structure>} Structures that need to be repaired.
+*/
+Memphis.getStructuresThatNeedRepair = function() {
+	Memphis.ensureValue(Memphis.keyNames.NEEDS_REPAIR);
+	var structures = [];
+	for (var id in Memory.needsRepair) {
+		if (Memory.needsRepair[id]) structures.push(Game.getObjectById(id));
+	}
+	return structures;
+}
+
+/**
 * Checks if the room needs a creep to perform a repair check in it.
+* Repair check is only for unowned structures. Owned structures are
+* checked every tick by {@link Memphis.updateNeedsRepair}.
 * @param room {Room} The room to check.
 * @returns {boolean} True if check needed.
 */
@@ -83,12 +140,14 @@ Memphis.roomNeedsRepairCheck = function(room) {
 * for roomRepairCheckCounter.
 */
 Memphis.updateNeedsRepair = function() {
+	// Decrement room check counters.
 	Memphis.ensureValue(Memphis.keyNames.ROOM_REPAIR_CHECK_COUNTER);
 	for (var roomName in Memory.roomRepairCheckCounter) {
 		Memory.roomRepairCheckCounter[roomName] -= 1;
 		if (Memory.roomRepairCheckCounter <= 0) delete Memory.roomRepairCheckCounter[roomName];
 	}
     
+    // Remove objects that no longer need repair.
     Memphis.ensureValue(Memphis.keyNames.NEEDS_REPAIR);
     for (var id in Memory.needsRepair) {
         var object = Game.getObjectById(id);
@@ -99,6 +158,7 @@ Memphis.updateNeedsRepair = function() {
         }
     }
     
+    // Mark owned structures for repair if necessary.
     for (var id in Game.structures) {
         var structure = Game.structures[id];
         if (structure.hits * 1.0 / structure.hitsMax <= structureConstants.OWNED_STRUCTURE_REPAIR_LIMIT) {

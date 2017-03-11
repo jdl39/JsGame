@@ -25,10 +25,11 @@ module.exports = function(grunt) {
                 },
                 // Make sure dependencies go earlier in the list.
                 src: [
+                    "src/*.js",
                         "src/utils/*.js",
                         "src/Creeps/*.js",
                         "src/Structures/*.js",
-                    "src/*.js",
+                            "src/Structures/StructureRole/*.js",
                 ],
                 dest: "dist/main.js",
             },

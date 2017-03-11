@@ -9,20 +9,11 @@ module.exports.loop = function () {
             delete Memory.creeps[key];
         }
     }
-    
-    // Handle Spawns
-    for (var name in Game.spawns) {
-        var spawn =  Game.spawns[name];
-        if (spawn.memory.role == roleNames.SPAWN_DEFAULT) {
-            spawnRoleDefault.run(spawn, spawn.memory.desiredHarvesterPopulation, spawn.memory.desiredBuilderPopulation, spawn.memory.desiredUpgraderPopulation, spawn.memory.desiredMilitiaPopulation);
-        }
-    }
-    
-    // Handle towers
-    var towers = _.filter(Game.structures, (s) => {return s.structureType == STRUCTURE_TOWER;});
-    for (var i in towers) {
-        var tower = towers[i];
-        towerRoleDefault.run(tower);
+
+    // Handle structures
+    for (var i in Game.structures) {
+        var structure = Game.structures[i];
+        StructureRole.findRoleAndRun(structure);
     }
 
     // Handle Creeps

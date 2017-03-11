@@ -28,6 +28,7 @@ module.exports = function(grunt) {
                     "src/*.js",
                         "src/utils/*.js",
                         "src/Creeps/*.js",
+                            "src/Creeps/CreepRole/*.js",
                         "src/Structures/*.js",
                             "src/Structures/StructureRole/*.js",
                 ],

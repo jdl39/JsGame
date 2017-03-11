@@ -1,6 +1,7 @@
 /**
 * The default role for spawns.
 * @class
+* @extends StructureRole
 */
 var SpawnRole = function() {};
 SpawnRole.prototype = Object.create(StructureRole.prototype);
@@ -15,7 +16,7 @@ SpawnRole.prototype = Object.create(StructureRole.prototype);
 /**
 * Objects within each spawn.memory.colonies. They represent data necessary to keep
 * a colony running.
-* @typedef {Object} Spawn.Colony
+* @typedef {Object} SpawnRole.Colony
 * @property numDesiredWorkers {number} The number of workers that should be in the colony.
 * @property workers {Array<string>} An array of names of active workers in the colony.
 * @property numDesiredTraders {number} The number of traders that should be in the colony.

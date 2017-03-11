@@ -166,3 +166,15 @@ Memphis.updateNeedsRepair = function() {
         }
     }
 }
+
+/**
+* Called every tick. Removes creep memory that is no longer associated with a creep.
+*/
+Memphis.cleanupCreepMemory = function() {
+	// Cleanup bad memory.
+    for (var key in Memory.creeps) {
+        if (!Game.creeps[key]) {
+            delete Memory.creeps[key];
+        }
+    }
+}

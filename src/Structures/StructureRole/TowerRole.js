@@ -1,6 +1,7 @@
 /**
 * The default role for towers.
 * @class
+* @extends StructureRole
 */
 var TowerRole = function() {};
 TowerRole.prototype = Object.create(StructureRole.prototype);

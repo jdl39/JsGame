@@ -68,7 +68,7 @@ var structureConstants = {
     /** @constant {number} */
     ROAD_REPAIR_LIMIT: 0.5,
     /** @constant {number} */
-    ROAD_REPAIR_COUNTER: 15000,
+    ROAD_REPAIR_COUNTER: 500,
 
     /** 
     * Constants used for finding an optimal tower site.

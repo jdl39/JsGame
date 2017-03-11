@@ -195,12 +195,29 @@ Creep.onTick = function() {
     
     return source;
  }
+
+/**
+* Instructs the creep to desposit into the nearest structure capable of receiving the deposit.
+* @param [filterOrTargets] {Array<Structure>|filterFunction} If this is an array, its structures are targeted instead of computing targets.
+* If it is a filter function, it is used to filter targets. Note that targets incapable of receiving the deposit are already filtered out.
+* @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource type to deposit.
+* @returns {?Structure} The structure we are attempting to deposit into/move to. Null if no target found.
+*/
+ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceType) {
+ 	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
+
+ 	var targets = null;
+ 	if (filterOrTargets instanceof Array) targets = filterOrTargets;
+ 	else targets = Utils.getAllDepositCapableStructures(this.room, resourceType, filterOrTargets);
+
+ 	var closest = this.pos.findClosestByPath(targets, {ignoreCreeps:true});
+ 	if (!closest) return null;
+ 	if (this.transfer(closest, resourceType) == ERR_NOT_IN_RANGE) this.moveTo(closest);
+ 	return closest;
+ }
  
  Creep.prototype.depositToNearestContainer = function() {
-     var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE) && _.sum(s.store) < s.storeCapacity}});
-     var closest = this.pos.findClosestByPath(containers, {ignoreCreeps:true});
-     if (this.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) this.moveTo(closest);
-     return closest;
+ 	return this.depositToNearestStructure((s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)});
  }
  
  Creep.prototype.withdrawFromNearestContainer = function() {

@@ -1,3 +1,10 @@
+TODO:
+1. I need to fix the intention bug: Creeps without intention can block off access to a source but won't harvest from it; they should instead get harvest priority.
+2. Add claimer/Spawn builder role.
+
+NOTE:
+We may encounter a bug with wandering creeps if pathing needs to go through adjascent rooms. Set maxRooms in moveTo to prevent wandering creeps.
+
 Rewrite pass 1:
 utils
 	constants.js
@@ -5,3 +12,11 @@ utils
 	utils.constructionSiteFinder.js
 	Memphis.js
 	screepsExtentions.js
+structures
+	StructureRole.js
+	SpawnRole.js
+	TowerRole.js
+	UnknownStructureRole.js
+creeps
+	CreepRole.js
+	HarvesterRole.js

@@ -1,4 +1,11 @@
 /**
+* A callback function passed into a filtering operation.
+* @callback filterFunction
+* @param obj {RoomObject} The object to either filter out or include.
+* @returns {boolean} True if we want to include the object.
+*/
+
+/**
 * Provides the costs of the creep body parts.
 * Keys are the body part constants
 * @constant {Object<BodyType, number>}
@@ -167,6 +174,7 @@ Utils.pathContainsPos = function(path, pos) {
 */
 Utils.onTick = function() {
     Memphis.repairUpdate();
+    Memphis.cleanupCreepMemory();
 }
 
 /**
@@ -190,4 +198,45 @@ Utils.getAdjacentSquareInNextRoom = function(pos, nextRoomName, exitType) {
         default:
             return ERR_NOT_FOUND;
     }
+}
+
+/**
+* Finds all the structures in a room capable of receiving a resource.
+* @param room {Room} The room to search.
+* @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. Currently only RESOURCE_ENERGY is supported.
+* @param [filter] {filterFunction} A filter function. If defined, filters the results.
+* @returns {Array<Structure>} An array of structures that can accept a deposit.
+*/
+Utils.getAllDepositCapableStructures = function(room, resourceType, filter) {
+    if (typeof resourceType == "undefined") resourceType = RESOURCE_ENERGY;
+
+    var depositableStructures = [];
+
+    if (resourceType == RESOURCE_ENERGY) {
+        depositableStructures = room.find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                return ((structure.structureType == STRUCTURE_EXTENSION ||
+                        structure.structureType == STRUCTURE_SPAWN ||
+                        structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity) ||
+                        ((structure.structureType == STRUCTURE_CONTAINER ||
+                        structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity);
+            }
+        });
+    } else if (resourceType !== RESOURCE_POWER) {
+        // This means we are working with a molecule compound.
+        throw "Molecule compound depositing not yet supported.";
+        /*return room.find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                // NOTE: May need to get labs to work with this.
+                return (structure.structureType == STRUCTURE_CONTAINER ||
+                        structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity;
+            }
+        })*/
+    } else {
+        // We are working with Power.
+        throw "Power depositing not yet supported.";
+    }
+
+    if (typeof filter !== "undefined") depositableStructures = _.filter(depositableStructures, filter);
+    return depositableStructures;
 }

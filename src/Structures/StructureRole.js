@@ -36,7 +36,7 @@ StructureRole.findRoleAndRun = function(structure) {
 /**
 * The function that runs the main logic of the role class. Takes the
 * structure to run as an argument.
-* @function run
+* @function StructureRole.run
 * @param structure {Structure} The structure to run.
 * @abstract
 */

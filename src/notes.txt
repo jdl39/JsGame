@@ -20,3 +20,4 @@ structures
 creeps
 	CreepRole.js
 	HarvesterRole.js
+	UnknownCreepRole.js

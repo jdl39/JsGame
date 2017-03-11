@@ -197,13 +197,30 @@ Creep.onTick = function() {
  }
 
 /**
+* Instructs the creep to attack the nearest enemy creep.
+* @param [filter] {filterFunction} A filter to apply to creep targeting.
+* @returns {?Creep} The target, if any. Null otherwise.
+*/
+Creep.prototype.attackNearestEnemyCreep = function(filter) {
+	var targets = creep.room.find(FIND_HOSTILE_CREEPS, {filter:filter});
+    var target = creep.pos.findClosestByPath(targets, {ignoreCreeps:true});
+        
+    if (target) {
+        if (creep.attack(target) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(target);
+        }
+    }
+    return target;
+}
+
+/**
 * Instructs the creep to desposit into the nearest structure capable of receiving the deposit.
 * @param [filterOrTargets] {Array<Structure>|filterFunction} If this is an array, its structures are targeted instead of computing targets.
 * If it is a filter function, it is used to filter targets. Note that targets incapable of receiving the deposit are already filtered out.
 * @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource type to deposit.
 * @returns {?Structure} The structure we are attempting to deposit into/move to. Null if no target found.
 */
- Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceType) {
+Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceType) {
  	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
 
  	var targets = null;
@@ -214,7 +231,7 @@ Creep.onTick = function() {
  	if (!closest) return null;
  	if (this.transfer(closest, resourceType) == ERR_NOT_IN_RANGE) this.moveTo(closest);
  	return closest;
- }
+}
  
  Creep.prototype.depositToNearestContainer = function() {
  	return this.depositToNearestStructure((s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)});
@@ -232,7 +249,7 @@ Creep.onTick = function() {
  Creep.prototype.harvestOrWithdrawFromNearestSource = function() {
     var sources = this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}});
     var spawns = this.room.find(FIND_MY_SPAWNS);
-    var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return s.structureType === STRUCTURE_CONTAINER && s.store.energy > 0; }});
+    var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store.energy > 0; }});
     var resourceDrops = this.room.find(FIND_DROPPED_ENERGY);
     
     var theCreep = this;

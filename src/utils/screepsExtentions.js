@@ -69,7 +69,7 @@ Room.prototype.soundOffRoles = function() {
 
 // Resource extentions ------------------------------------------
 Resource.prototype.intentAllowed = function() {
-    var creepsIntent = Utils.creepsIntentOn(target);
+    var creepsIntent = Utils.creepsIntentOn(this);
     var amountUnclaimed = this.amount;
     for (var i in creepsIntent) {
         var creep = creepsIntent[i];

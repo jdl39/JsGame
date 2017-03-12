@@ -33,7 +33,7 @@ HarvesterRole.run = function(creep) {
     // 1 Towers. They are our main defense, so need to be kept fueled.
     var targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_TOWER;});
     // 2 Spawns. They are necessary for keeping the creep population afloat.
-    if(targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_SPAWN;});
+    if (targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_SPAWN;});
     // 3 Extensions. They are similar to spawns.
     if (targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_EXTENSION;});
     // 4 Containers and storage. If everything else is fully fueled, we just store the energy.

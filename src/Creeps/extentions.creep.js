@@ -238,7 +238,7 @@ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceTy
  	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
 
  	var targets = null;
- 	if (filterOrTargets instanceof Array) targets = filterOrTargets;
+ 	if (Array.isArray(filterOrTargets)) targets = filterOrTargets;
  	else targets = Utils.getAllDepositCapableStructures(this.room, resourceType, filterOrTargets);
 
  	var closest = this.pos.findClosestByPath(targets, {ignoreCreeps:true});

@@ -16,7 +16,7 @@ ColonistWorkerRole.buildUnbuiltColonyRoad = function(creep) {
     var mySource = Game.getObjectById(creep.memory.mySource);
     var homeSpawn = Game.getObjectById(creep.memory.home);
     var roadSite = null;
-    if (!Memphis.spawnHasRoadsTo(creep.memory.mySource)) {
+    if (!Memphis.spawnHasRoadsTo(homeSpawn, creep.memory.mySource)) {
         // See if there are roads to complete.
         roadSite = creep.buildNearestSite((s) => {return s.structureType == STRUCTURE_ROAD});
         if (roadSite) return roadSite;

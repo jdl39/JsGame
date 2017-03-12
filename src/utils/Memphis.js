@@ -36,7 +36,7 @@ Memphis.removeDeadObjectsById = function(memObj) {
 	for (var i = 0; i < iterationObject.length; i++) {
 		var id = iterationObject[i];
 		if (!Game.getObjectById(id)) {
-			if (memObj instanceof Array) {
+			if (Array.isArray(memObj)) {
 				memObj.splice(i, 1);
 				i--;
 			} else {
@@ -57,7 +57,7 @@ Memphis.removeDeadCreepsByName = function(memObj) {
 	for (var i = 0; i < iterationObject.length; i++) {
 		var name = iterationObject[i];
 		if (!Game.creeps[name]) {
-			if (memObj instanceof Array) {
+			if (Array.isArray(memObj)) {
 				memObj.splice(i, 1);
 				i--;
 			} else {

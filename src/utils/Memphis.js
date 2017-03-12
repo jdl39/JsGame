@@ -32,7 +32,7 @@ Memphis.ensureValue = function(key, memoryDefault, memoryObject) {
 */
 Memphis.removeDeadObjectsById = function(memObj) {
 	var iterationObject = memObj;
-	if (typeof memObj == "object") iterationObject = Object.keys(memObj);
+	if (!Array.isArray(memObj)) iterationObject = Object.keys(memObj);
 	for (var i = 0; i < iterationObject.length; i++) {
 		var id = iterationObject[i];
 		if (!Game.getObjectById(id)) {
@@ -53,7 +53,7 @@ Memphis.removeDeadObjectsById = function(memObj) {
 */
 Memphis.removeDeadCreepsByName = function(memObj) {
 	var iterationObject = memObj;
-	if (typeof memObj == "object") iterationObject = Object.keys(memObj);
+	if (!Array.isArray(memObj)) iterationObject = Object.keys(memObj);
 	for (var i = 0; i < iterationObject.length; i++) {
 		var name = iterationObject[i];
 		if (!Game.creeps[name]) {
@@ -270,4 +270,20 @@ Memphis.cleanupAllMemory = function() {
 
 	Memphis.ensureValue("GlobalCreepMemory");
 	Memory.GlobalCreepMemory.foundConstructionSitesForRoom = {};
+}
+
+Memphis.getPathCacheKey = function(fromPos, toPos) {
+	return "" + fromPos.x + "" + fromPos.y + "" + fromPos.roomName + "" + toPos.x + "" + toPos.y + "" + toPos.roomName;
+}
+
+Memphis.getPathCache = function(fromPos, toPos) {
+	Memphis.ensureValue("findPathCache");
+	Memphis.ensureValue(Memphis.getPathCacheKey(fromPos, toPos), {}, Memory.findPathCache);
+	return Memory.findPathCache[Memphis.getPathCacheKey(fromPos, toPos)].path;
+}
+
+Memphis.cachePath = function(fromPos, toPos, path) {
+	Memphis.ensureValue("findPathCache");
+	Memphis.ensureValue(Memphis.getPathCacheKey(fromPos, toPos), {}, Memory.findPathCache);
+	Memory.findPathCache[Memphis.getPathCacheKey(fromPos, toPos)] = {path: path, life: miscConstants.CACHE_LIFETIME};
 }

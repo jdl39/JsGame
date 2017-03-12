@@ -97,3 +97,11 @@ var visualConstants = {
     /** @constant {string} */
     DEFAULT_PATH: '#000000',
 };
+
+/**
+* Other constants.
+* @namespace
+*/
+var miscConstants = {
+    CACHE_LIFETIME: 5000,
+}

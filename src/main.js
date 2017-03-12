@@ -11,10 +11,17 @@ module.exports.loop = function () {
         StructureRole.findRoleAndRun(structure);
     }
 
+    var miliTaken = {};
     // Handle Creeps
     for(var name in Game.creeps) {
+        var t1 = new Date().getTime();
         var creep = Game.creeps[name];
         creep.onTick();
         CreepRole.findRoleAndRun(creep);
+
+        if (!miliTaken[creep.memory.role]) miliTaken[creep.memory.role] = 0;
+        miliTaken[creep.memory.role] += new Date().getTime() - t1;
     }
+
+    //for (var k in miliTaken) console.log(k + ": " + miliTaken[k]);
 }

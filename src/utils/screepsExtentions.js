@@ -70,22 +70,33 @@ Room.prototype.soundOffRoles = function() {
     }
 }
 
-/*
+
 // I thought I could do some caching here, but testing shows the cache is never hit.
 // Maybe I could cache for future ticks? With a decay to prevent memory bloat?
-var roomOldFindPath = Room.prototype.findPath;
+/*var roomOldFindPath = Room.prototype.findPath;
 Room.prototype.findPath = function(fromPos, toPos, opts) {
-    Memphis.ensureValue("findPathCache");
-    var key = "" + fromPos.x + "" + fromPos.y + "" + fromPos.roomName + "" + toPos.x + "" + toPos.y + "" + toPos.roomName;
-    if (Memory.findPathCache[key]) {
-        console.log("CACHE HIT!");
-        return Memory.findPathCache[key];
+    if (Memphis.getPathCache(fromPos, toPos)) {
+        return Memphis.getPathCache(fromPos, toPos);
     }
     var path = roomOldFindPath.apply(this, [fromPos, toPos, opts]);
-    Memory.findPathCache[key] = path;
+    Memphis.cachePath(fromPos, toPos, path);
     return path;
+}*/
+
+var roomOldFind = Room.prototype.find;
+Room.prototype.find = function(type, opts) {
+    Memphis.ensureValue("findCache", {}, this);
+
+    var filter = typeof opts != "undefined" ? opts.filter : undefined;
+    var initialFind = this.findCache[type];
+    if (typeof initialFind == "undefined") {
+        initialFind = roomOldFind.apply(this, [type]);
+        this.findCache[type] = initialFind;
+    }
+    if (filter) initialFind = _.filter(initialFind, filter);
+    return initialFind;
 }
-*/
+
 
 // --------------------------------------------------------------
 

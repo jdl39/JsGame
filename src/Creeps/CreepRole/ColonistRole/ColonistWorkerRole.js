@@ -38,6 +38,9 @@ ColonistWorkerRole.buildUnbuiltColonyRoad = function(creep) {
     return roadSite;
 }
 
+// TODO: Investigate bug where multiple containers are built around a single source.
+// is that still a thing that happens? It could THEORETICALLY happen, but only if
+// multiple creeps HAPPENED to be done harvesting in the same tick.
 ColonistWorkerRole.buildAndDepositIntoContainer = function(creep) {
     // Then, if there are no containers, we should build one.
     var mySourceContainers = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: (s) => {return s.structureType == STRUCTURE_CONTAINER;}});

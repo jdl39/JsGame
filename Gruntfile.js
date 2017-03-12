@@ -2,6 +2,7 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-screeps')
     grunt.loadNpmTasks('grunt-contrib-concat')
+    grunt.loadNpmTasks('grunt-stripjscomments')
 
     var branch = grunt.option('branch') || 'codeRewrite';
 
@@ -36,7 +37,19 @@ module.exports = function(grunt) {
                 dest: "dist/main.js",
             },
         },
+
+        comments: {
+            your_target: {
+                // Target-specific file lists and/or options go here. 
+                options: {
+                    singleline: true,
+                    multiline: true,
+                },
+                src: [ 'dist/*.js'] // files to remove comments from 
+            },
+        },
     });
 
-    grunt.registerTask("default", ["concat", "screeps"]);
+    grunt.registerTask("default", ["concat", "comments", "screeps"]);
+    //grunt.registerTask("default", ["concat", "screeps"]);
 }

@@ -124,14 +124,6 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
 // ------------------------------------------------------
 // New methods
 // ------------------------------------------------------
-/**
-* Function called for every tick.
-* @memberof Creep
-*/
-Creep.onTick = function() {
-    if (typeof Memory.GlobalCreepMemory === "undefined") Memory.GlobalCreepMemory = {};
-    Memory.GlobalCreepMemory.foundConstructionSitesForRoom = {};
-}
 
 /** Actions to be performed at the beginning of a tick.
 * @memberof Creep

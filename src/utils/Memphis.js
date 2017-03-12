@@ -236,5 +236,5 @@ Memphis.cleanupAllMemory = function() {
 	Memphis.cleanupCreepMemory();
 
 	Memphis.ensureValue("GlobalCreepMemory");
-	Memory.GlobalCreepMemory.constructionSitesFoundThisTick = {};
+	Memory.GlobalCreepMemory.foundConstructionSitesForRoom = {};
 }

@@ -12,7 +12,6 @@ module.exports.loop = function () {
     }
 
     // Handle Creeps
-    Creep.onTick();
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         creep.onTick();

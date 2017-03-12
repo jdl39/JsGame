@@ -196,11 +196,12 @@ Memphis.constructionSitesFoundThisTick = function(room) {
 * Mark that there is a road between a given spawn and the object.
 * Used by builder creeps.
 * @param spawn {StructureSpawn} The spawn.
-* @param obj {RoomObject} The object that a road has been built to.
+* @param obj {RoomObject|string} The object (or obj id) that a road has been built to.
 */
 Memphis.markSpawnHasRoadsTo = function(spawn, obj) {
 	Memphis.ensureValue("hasRoadsTo", {}, spawn.memory);
-	spawn.memory.hasRoadsTo[obj.id] = true;
+	var id = typeof obj === "string" ? obj : obj.id;
+	spawn.memory.hasRoadsTo[id] = true;
 }
 
 /**
@@ -208,13 +209,32 @@ Memphis.markSpawnHasRoadsTo = function(spawn, obj) {
 * object. Relies on {@link Memphis.markSpawnHasRoadsTo} to determine
 * if there is a road.
 * @param spawn {StructureSpawn} The spawn.
-* @param obj {RoomObject} The other object.
+* @param obj {RoomObject|string} The other object (or object id).
 * @returns {boolean} True if there is a road marked between the spawn and the obj.
 */
 Memphis.spawnHasRoadsTo = function(spawn, obj) {
 	Memphis.ensureValue("hasRoadsTo", {}, spawn.memory);
-	if (spawn.memory.hasRoadsTo[obj.id]) return true;
+	var id = typeof obj === "string" ? obj : obj.id;
+	if (spawn.memory.hasRoadsTo[id]) return true;
 	return false;
+}
+
+/**
+* Marks that the spawn's colony at colony index has at least 1 road.
+* @param spawn {StructureSpawn} The spawn
+* @param colonyIndex {number} The index of the colony for the spawn. 
+*/
+Memphis.markColonyRoadsBuilt = function(spawn, colonyIndex) {
+	spawn.memory.colonies[colonyIndex].roadsBuilt = true;
+}
+
+/**
+* Marks that the spawn's colony at colony index has at least 1 container.
+* @param spawn {StructureSpawn} The spawn
+* @param colonyIndex {number} The index of the colony for the spawn. 
+*/
+Memphis.markColonyContainersBuilt = function(spawn, colonyIndex) {
+	spawn.memory.colonies[colonyIndex].containersBuilt = true;
 }
 
 /**

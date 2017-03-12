@@ -398,6 +398,7 @@ Creep.prototype.timeToDest = function() {
  	}
  }
  
+ // REWRITETODO: This needs to become "checkUnownedStructureRepair", and to use Memphis more.
  Creep.prototype.checkRoadRepair = function() {
      if (typeof Memory.roomToRoadCheckCounter == "undefined") Memory.roomToRoadCheckCounter = {};
      if (typeof Memory.roomToRoadCheckCounter[this.room.name] === "undefined") Memory.roomToRoadCheckCounter[this.room.name] = 0;

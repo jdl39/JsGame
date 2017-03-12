@@ -92,7 +92,7 @@ SpawnRole.handleColonies = function(spawn) {
 
         // REWRITETODO: Consider decomposing these blocks since they are similar.
         // First, try to build a worker.
-        Memphis.ensureValue("numDesiredWorkers", 1, colony);
+        Memphis.ensureValue("numDesiredWorkers", 2, colony);
         Memphis.ensureValue("workers", [], colony);
         Memphis.removeDeadCreepsByName(colony.workers);
         createResult = checkAndBuildCreep(spawn, roleNames.COLONIST_WORKER, colony.numDesiredWorkers - colony.workers.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
@@ -103,7 +103,7 @@ SpawnRole.handleColonies = function(spawn) {
         }
         
         Memphis.ensureValue("traders", [], colony);
-        if (typeof colony.numDesiredTraders === "undefined" && colony.roadsBuilt) colony.numDesiredTraders = 1;
+        if (typeof colony.numDesiredTraders === "undefined" && colony.containersBuilt) colony.numDesiredTraders = 2;
         Memphis.removeDeadCreepsByName(colony.traders);
         createResult = checkAndBuildCreep(spawn, roleNames.COLONIST_TRADER, colony.numDesiredTraders - colony.traders.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;

@@ -24,11 +24,11 @@ creeps
 	UnknownCreepRole.js
 	MilitiaRole.js
 	BuilderRole.js
+	UpgraderRole.js
+	ColonistRole.js
+	ColonistWorkerRole.js
+	ColonistTraderRole.js
 
 Still need rewrite:
 creeps
 	extentions.creep.js
-	/* ColonistRole.js */
-	role.colonistTrader.js
-	role.colonistWorker.js
-	role.upgrader.js

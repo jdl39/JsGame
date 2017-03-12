@@ -23,7 +23,7 @@ var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	} 
 	
 	var distToSpawn = sitePos.getRangeTo(spawn.pos);
-	cost += distToSpawn;
+	cost += distToSpawn * 2;
 
 	for (var i in extentions) {
 		var distToEx = sitePos.getRangeTo(extentions[i].pos);

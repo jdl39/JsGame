@@ -80,7 +80,7 @@ BuilderRole.checkForNewConstruction = function(creep) {
 
 BuilderRole.run = function(creep) {
 	// First, we check for wear on the unowned structures.
-	creep.checkRoadRepair();
+	creep.checkUnownedStructureRepair();
 
 	// Next, check if we are building or gathering energy.
 	BuilderRole.buildingCheck(creep);

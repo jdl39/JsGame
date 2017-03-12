@@ -1,8 +1,3 @@
-// Module: extentions.creep
-// This module contains extentions to the base behavior of the Creep class. It overwrites
-// most of the default methods to extend them with additional behavior and adds new
-// functions for convenience.
-
 /**
 * The creep built-in class.
 * @class Creep
@@ -125,9 +120,8 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
 // New methods
 // ------------------------------------------------------
 
-/** Actions to be performed at the beginning of a tick.
-* @memberof Creep
-* @instance
+/**
+* Actions to be performed at the beginning of a tick.
 */
  Creep.prototype.onTick = function() {
     this.memory.intention = null;
@@ -136,12 +130,11 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});
  }
  
- /** Performs a harvest or a transfer on the target, depending on its type.
- * @memberof Creep
- * @instance
+ /**
+ * Performs a harvest, withdraw, or pickup on the target, depending on its type.
  * @param target {Source | Resource | Structure} The target to harvest/withdraw from.
  */
- Creep.prototype.harvestOrWithdrawEnergy = function(target) {
+Creep.prototype.harvestOrWithdrawEnergy = function(target) {
  	if (target instanceof Resource) {
  		return this.pickup(target);
  	}
@@ -151,42 +144,62 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
     }
      
     return this.withdraw(target, RESOURCE_ENERGY);
- }
+}
  
- /** Searches for nearest source or dropped resource and attempts to harvest from
+ /** 
+ * Searches for nearest source or dropped resource and attempts to harvest from
  * it.
- * @memberof Creep
- * @instance
+ * @returns {Source|Resource} The source or dropped resource to harvest from.
  */
- Creep.prototype.harvestFromNearestSource = function() {
-    var sources = this.room.find(FIND_SOURCES);
-    sources = _.filter(sources, function(source) { return source.energy > 0;});
-    
+Creep.prototype.harvestFromNearestSource = function() {
+	return this.harvestOrWithdrawFromNearestSource((s) => {
+		return (s instanceof Source || s instanceof Resource);
+	});
+}
+
+/**
+* Searches for the nearest source, spawn (with unreserved energy), container, storage, or dropped energy to
+* gather energy from, and attempts to gather it. NOTE: Only works with RESOURCE_ENERGY so far.
+* @param [filterFunction] {filterFunction} A filter on the possible energy targets.
+* @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource to harvest/withdraw. Currently only RESOURCE_ENERGY is supported.
+* @returns {RoomObject} The object we are gathering from.
+* @cpu HIGH TODO: Consider possible caching solutions.
+*/
+Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterFunction, resourceType) {
+	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
+	if (resourceType != RESOURCE_ENERGY) throw new Error("Creep.harvestOrWithdrawFromNearestSource: Resource type not supported: " + resourceType);
+
+    var sources = this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}});
+    var spawns = this.room.find(FIND_MY_SPAWNS);
+    var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[resourceType] > 0; }});
     var resourceDrops = this.room.find(FIND_DROPPED_ENERGY);
     
-    var allSources = sources.concat(resourceDrops);
-    allSources = Utils.filterByIntent(allSources);
+    var theCreep = this;
+    spawns = _.filter(spawns, function(spawn) {
+        var energyNeeded = theCreep.carryCapacity;
+        if (typeof spawn.memory.reservedEnergy !== "undefined") {
+            energyNeeded += spawn.memory.reservedEnergy;
+        }
+        return spawn.energy >= energyNeeded;
+    });
     
-    // REWRITETODO: Decomp this "intent backoff" functionality.
-    var source = this.pos.findClosestByPath(allSources, {ignoreCreeps: true});
-    if (!source) {
-    	source = this.pos.findClosestByPath(sources, {ignoreCreeps:true});
+    var energyTargets = sources.concat(spawns);
+    energyTargets = energyTargets.concat(containers);
+    energyTargets = energyTargets.concat(resourceDrops);
+
+    if (filterFunction) energyTargets = _.filter(energyTargets, filterFunction);
+
+    var intentableTargets = Utils.filterByIntent(energyTargets);
+    
+    var target = this.pos.findClosestByPath(intentableTargets, {ignoreCreeps:true});
+    if (!target) target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
+    
+    if (target && this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) {
+        this.moveTo(target);
     }
-    
-    var err = OK;
-    if (source) {
-    	if(source instanceof Resource) {
-    	    err = this.pickup(source);
-    	} else {
-    	    err = this.harvest(source);
-    	}
-	}
-    if (err == ERR_NOT_IN_RANGE) {
-        this.moveTo(source);
-    }
-    
-    return source;
- }
+
+    return target;
+}
 
 /**
 * Instructs the creep to attack the nearest enemy creep.
@@ -234,47 +247,31 @@ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceTy
  	return closest;
 }
  
- Creep.prototype.depositToNearestContainer = function() {
+/**
+* Instructs the creep to deposit into the nearest container or storage capable of receiving the deposit.
+* @returns {?Structure} The structure we are attempting to deposit into/move to. Null if no target found.
+*/
+Creep.prototype.depositToNearestContainer = function() {
  	return this.depositToNearestStructure((s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)});
- }
+}
  
- Creep.prototype.withdrawFromNearestContainer = function() {
-     var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE) && s.store.energy > 0}});
-     containers = containers.concat(this.room.find(FIND_DROPPED_ENERGY));
-     var closest = this.pos.findClosestByPath(containers, {ignoreCreeps:true});
-     if (closest && closest instanceof Structure && this.withdraw(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) this.moveTo(closest);
-     else if (closest && closest instanceof Resource && this.pickup(closest) == ERR_NOT_IN_RANGE) this.moveTo(closest);
-     return closest;
- }
- 
- Creep.prototype.harvestOrWithdrawFromNearestSource = function() {
-    var sources = this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}});
-    var spawns = this.room.find(FIND_MY_SPAWNS);
-    var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store.energy > 0; }});
-    var resourceDrops = this.room.find(FIND_DROPPED_ENERGY);
-    
-    var theCreep = this;
-    spawns = _.filter(spawns, function(spawn) {
-        var energyNeeded = theCreep.carryCapacity;
-        if (typeof spawn.memory.reservedEnergy !== "undefined") {
-            energyNeeded += spawn.memory.reservedEnergy;
-        }
-        return spawn.energy >= energyNeeded;
-    });
-    
-    var energyTargets = sources.concat(spawns);
-    energyTargets = energyTargets.concat(containers);
-    energyTargets = energyTargets.concat(resourceDrops);
-    energyTargets = Utils.filterByIntent(energyTargets);
-    
-    var target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
-    
-    if (target && this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) {
-        this.moveTo(target);
-    }
- }
- 
- Creep.prototype.buildNearestSite = function(siteFilter) {
+ /**
+ * Instructs the creep to withdraw from the nearest container or storage (or dropped energy).
+ * @returns {Structure|Resource} The object to withdraw from.
+ */
+Creep.prototype.withdrawFromNearestContainer = function() {
+ 	return this.harvestOrWithdrawFromNearestSource((s) => {
+ 		return (s instanceof Structure && (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)) ||
+ 				(s instanceof Resource);
+ 	});
+}
+
+/**
+* Instructs the creep to build the nearest construction site.
+* @param [siteFilter] {filterFunction} A filter to apply to the construction sites.
+* @returns {ConstructionSite} The site to build.
+*/
+Creep.prototype.buildNearestSite = function(siteFilter) {
     var targets = this.room.find(FIND_CONSTRUCTION_SITES, {filter: siteFilter});
     var target = this.pos.findClosestByPath(targets, {ignoreCreeps: true});
     if(target != null) {
@@ -284,8 +281,13 @@ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceTy
     }
     
     return target;
- }
+}
 
+/**
+* Gets the amount of ticks it will take for the creep to traverse the given position.
+* @param pos {RoomPosition} The position to calculate.
+* @returns {number} The number of ticks it will take for the creep to pass through.
+*/
 Creep.prototype.posTickCost = function(pos) {
 	var costPerPart = 999;
 	var possibleRoad = pos.lookFor(LOOK_STRUCTURES);
@@ -335,6 +337,11 @@ Creep.prototype.posTickCost = function(pos) {
 	return Math.ceil(cost * 1.0 / movePower);
 }
 
+/**
+* Gets the number of ticks until the creep reaches its destination. It is only an estimate, as
+* many variables can change.
+* @returns {number} The number of ticks until the destination.
+*/
 Creep.prototype.timeToDest = function() {
 	if (this.memory.timeToDestTimestamp === Game.time) {
 		return this.memory.timeToDest;
@@ -354,26 +361,37 @@ Creep.prototype.timeToDest = function() {
 
 	totalCost += Math.ceil(this.fatigue * 1.0 / this.movePower());
 
+	// This is cached to prevent recalculation in a single tick.
 	this.memory.timeToDestTimestamp = Game.time;
 	this.memory.timeToDest = totalCost;
 	return totalCost;
 }
  
- Creep.prototype.soundOff = function(infoType) {
-     if (infoType == "role") {
-         this.say(this.memory.role);
-     }
- }
- 
- Creep.prototype.rawBody = function() {
-     var rb = [];
-     for (var i in this.body) {
-         rb.push(this.body[i].type);
-     }
-     return rb;
- }
+Creep.prototype.soundOff = function(infoType) {
+    if (infoType == "role") {
+        this.say(this.memory.role);
+    }
+}
 
- Creep.prototype.movePower = function() {
+/**
+* Gets an array of the raw body parts that make up the creep.
+* Eg [WORK, CARRY, MOVE]
+* @returns {Array<BodypartType>} The raw bodyparts of the creep.
+*/
+Creep.prototype.rawBody = function() {
+    var rb = [];
+    for (var i in this.body) {
+        rb.push(this.body[i].type);
+    }
+    return rb;
+}
+
+/**
+* Gets the move power of the creep. This is the amount of fatigue
+* the creep can deal with per tick.
+* @returns {number} The amount of fatigue the creep can deal with per tick.
+*/
+Creep.prototype.movePower = function() {
  	var p = 0;
  	for (var i in this.body) {
  		if (this.body[i].type == MOVE) {
@@ -381,9 +399,13 @@ Creep.prototype.timeToDest = function() {
  		}
  	}
  	return p;
- }
+}
 
- Creep.prototype.roleColor = function() {
+/**
+* Retrieves the color associated with the creep's role. Used for move paths.
+* @returns {string} String representation of the creep's role color.
+*/
+Creep.prototype.roleColor = function() {
  	switch (this.memory.role) {
  		case roleNames.HARVESTER:
  			return visualConstants.HARVESTER_COLOR;
@@ -396,31 +418,33 @@ Creep.prototype.timeToDest = function() {
  		default:
  			return visualConstants.DEFAULT_COLOR;
  	}
- }
+}
  
- // REWRITETODO: This needs to become "checkUnownedStructureRepair", and to use Memphis more.
- Creep.prototype.checkRoadRepair = function() {
-     if (typeof Memory.roomToRoadCheckCounter == "undefined") Memory.roomToRoadCheckCounter = {};
-     if (typeof Memory.roomToRoadCheckCounter[this.room.name] === "undefined") Memory.roomToRoadCheckCounter[this.room.name] = 0;
-     if (Memory.roomToRoadCheckCounter[this.room.name] > 0) return;
-     var roadsToRepair = this.room.find(FIND_STRUCTURES, {filter: (s) => {
-         return (s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && s.hits <= s.hitsMax * structureConstants.ROAD_REPAIR_LIMIT; 
-     }});
-     for (var i in roadsToRepair) {
-         Memphis.markForRepair(roadsToRepair[i]);
-     }
-     Memory.roomToRoadCheckCounter[this.room.name] = structureConstants.ROAD_REPAIR_COUNTER;
- }
- 
- Creep.prototype.repairNearestStructureNeedingRepair = function(filter) {
-     var structuresInNeedOfRepair = [];
-     for (var id in Memory.needsRepair) {
-         var object = Game.getObjectById(id);
-         if (object) structuresInNeedOfRepair.push(object);
-     }
-     
-     if (filter) _.filter(structuresInNeedOfRepair, filter);
-     var structureToRepair = this.pos.findClosestByPath(structuresInNeedOfRepair);
-     if (structureToRepair && this.repair(structureToRepair) == ERR_NOT_IN_RANGE) this.moveTo(structureToRepair);
-     return structureToRepair;
- }
+/**
+* Instructs the creep to perform an unowned structure repair check on its room, if needed.
+* Marks unowned structures in need of repair.
+* @param [force] {boolean} If true, the function bypasses the repair check counter.
+*/
+Creep.prototype.checkUnownedStructureRepair = function(force) {
+ 	if (!force && !Memphis.roomNeedsRepairCheck(this.room)) return;
+ 	var structuresToRepair = this.room.find(FIND_STRUCTURES, {filter: (s) => {
+        return (s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && s.hits <= s.hitsMax * structureConstants.UNOWNED_STRUCTURE_REPAIR_LIMIT; 
+    }});
+    for (var i in structuresToRepair) {
+    	Memphis.markForRepair(structuresToRepair[i]);
+    }
+    Memphis.markRoomRepairCheckCompleted(this.room);
+}
+
+/**
+* Instructs the creep to repair the nearest structure in need of repair.
+* @param [filter] {filterFunction} An optional filter to apply to the structures in need of repair.
+* @return {?Structure} The structure we are attempting to repair, or null, if none was found.
+*/
+Creep.prototype.repairNearestStructureNeedingRepair = function(filter) {
+    var structuresInNeedOfRepair = Memphis.getStructuresThatNeedRepair(filter);
+    
+    var structureToRepair = this.pos.findClosestByPath(structuresInNeedOfRepair);
+    if (structureToRepair && this.repair(structureToRepair) == ERR_NOT_IN_RANGE) this.moveTo(structureToRepair);
+    return structureToRepair;
+}

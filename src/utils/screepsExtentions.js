@@ -5,7 +5,11 @@
 */
 
 /**
-* Determines if a new creep may place intent on this object.
+* Determines if a new creep may place intent on this object. TODO:
+* currently it is impossible to tell what the creep intends to do
+* to the object. This may be necessary info to determine if intent is
+* allowed. Eg. A container may be targetted by creeps attempting to deposit
+* or withdraw, and those intentions are complete opposites.
 * @function RoomObject#intentAllowed
 * @abstract
 * @returns {boolean} True if a new creep may place intent.
@@ -65,6 +69,24 @@ Room.prototype.soundOffRoles = function() {
         c.soundOff("role");
     }
 }
+
+/*
+// I thought I could do some caching here, but testing shows the cache is never hit.
+// Maybe I could cache for future ticks? With a decay to prevent memory bloat?
+var roomOldFindPath = Room.prototype.findPath;
+Room.prototype.findPath = function(fromPos, toPos, opts) {
+    Memphis.ensureValue("findPathCache");
+    var key = "" + fromPos.x + "" + fromPos.y + "" + fromPos.roomName + "" + toPos.x + "" + toPos.y + "" + toPos.roomName;
+    if (Memory.findPathCache[key]) {
+        console.log("CACHE HIT!");
+        return Memory.findPathCache[key];
+    }
+    var path = roomOldFindPath.apply(this, [fromPos, toPos, opts]);
+    Memory.findPathCache[key] = path;
+    return path;
+}
+*/
+
 // --------------------------------------------------------------
 
 // Resource extentions ------------------------------------------

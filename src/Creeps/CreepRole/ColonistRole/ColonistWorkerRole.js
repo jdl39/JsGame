@@ -58,7 +58,7 @@ ColonistWorkerRole.buildAndDepositIntoContainer = function(creep) {
 
 ColonistWorkerRole.run = function(creep) {
     // Check room for needed repairs.
-    creep.checkRoadRepair();
+    creep.checkUnownedStructureRepair();
 
     // Check if we are harvesting or not.
     ColonistWorkerRole.harvestingCheck(creep);

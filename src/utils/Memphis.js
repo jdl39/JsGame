@@ -110,15 +110,28 @@ Memphis.needsRepair = function(structure) {
 
 /**
 * Returns an array of structures that have been marked for repair.
+* @param [filter] {filterFunction} An optional filter to apply to the structures.
 * @returns {Array<Structure>} Structures that need to be repaired.
 */
-Memphis.getStructuresThatNeedRepair = function() {
+Memphis.getStructuresThatNeedRepair = function(filter) {
 	Memphis.ensureValue(Memphis.keyNames.NEEDS_REPAIR);
 	var structures = [];
 	for (var id in Memory.needsRepair) {
 		if (Memory.needsRepair[id]) structures.push(Game.getObjectById(id));
 	}
+
+	if (filter) structures = _.filter(structures, filter);
 	return structures;
+}
+
+/**
+* Marks that a room received an unowned structure repair check by setting the needs repair
+* check counter to the max.
+* @param room {Room} The room we wish to mark completed.
+*/
+Memphis.markRoomRepairCheckCompleted = function(room) {
+	Memphis.ensureValue(Memphis.keyNames.ROOM_REPAIR_CHECK_COUNTER);
+	Memory.roomToRoadCheckCounter[room.name] = structureConstants.UNOWNED_STRUCTURE_REPAIR_COUNTER;
 }
 
 /**

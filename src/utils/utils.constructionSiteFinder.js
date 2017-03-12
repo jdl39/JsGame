@@ -69,6 +69,67 @@ SiteFinder.findSiteForExtension = function(spawn) {
 	return bestSite;
 }
 
+var _evalSiteForTower = function(site, otherTowers, roomSpawns) {
+    // Make sure we are at least 1 tile from every structure, and not on a structure, and not on a wall.
+    var badSite = false;
+    Utils.processNearby(site, (s) => {
+    	var structures = s.lookFor(LOOK_STRUCTURES);
+    	if (structures.length && (structures[0].structureType !== STRUCTURE_ROAD || (x == site.x && y == site.y))) {
+            badSite = true;
+            return true;
+        }
+    });
+    if (badSite) return Number.MAX_SAFE_INTEGER;
+    
+    if (Game.map.getTerrainAt(site) == "wall") return Number.MAX_SAFE_INTEGER;
+    
+    var cost = structureConstants.towerSiteCostConstants.COST_FOR_OFF_CENTER * site.getRangeTo(24, 24);
+    for (var i in otherTowers) {
+        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_OTHER_TOWER * site.getRangeTo(otherTowers[i]);
+    }
+    for (var i in roomSpawns) {
+        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_SPAWN * site.getRangeTo(roomSpawns[i]);
+    }
+    
+    return cost;
+}
+
+/**
+* Finds the optimal site for a tower.
+* @param room {Room} The room to place the tower.
+* @returns {RoomPosition} The optimal position for the tower, or null.
+*/
+SiteFinder.findSiteForTower = function(room) {
+    var myStructures = room.find(FIND_MY_STRUCTURES);
+    var otherTowers = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_TOWER;});
+    var roomSpawns = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_SPAWN;});
+    
+    var bestCost = Number.MAX_SAFE_INTEGER;
+    var bestSite = null;
+    Utils.processAllSquaresInRoom(room, (site) => {
+    	var siteCost = _evalSiteForTower(site, otherTowers, roomSpawns);
+        if (siteCost < bestCost) {
+            bestCost = siteCost;
+            bestSite = site;
+        }
+    });
+    
+    return bestSite;
+}
+
+/**
+* Wrapper for the SiteFinder.findSiteFor functions. Takes a room and a structure type and
+* finds the optimal site for that structure in that room.
+* @param room {Room} The room
+* @param structureType One of the STRUCTURE_* constants. The type to find a site for.
+* @returns {RoomPosition} The optimal position.
+*/
+SiteFinder.findSiteForStructure = function(room, structureType) {
+	if (structureType == STRUCTURE_EXTENSION) return SiteFinder.findSiteForExtension(room);
+	if (structureType == STRUCTURE_TOWER) return SiteFinder.findSiteForTower(room);
+	throw "SiteFinder.findSiteForStruture: Unsupported structure type " + structureType;
+}
+
 var _continueRoadToInSameRoom = function(startPos, endPos) {
 	// Get the path.
 	var path = startPos.findPathTo(endPos, {ignoreCreeps:true});
@@ -124,52 +185,4 @@ SiteFinder.continueRoadTo = function(startPos, endPos) {
     }
 
 	return null;
-}
-
-var _evalSiteForTower = function(site, otherTowers, roomSpawns) {
-    // Make sure we are at least 1 tile from every structure, and not on a structure, and not on a wall.
-    var badSite = false;
-    Utils.processNearby(site, (s) => {
-    	var structures = s.lookFor(LOOK_STRUCTURES);
-    	if (structures.length && (structures[0].structureType !== STRUCTURE_ROAD || (x == site.x && y == site.y))) {
-            badSite = true;
-            return true;
-        }
-    });
-    if (badSite) return Number.MAX_SAFE_INTEGER;
-    
-    if (Game.map.getTerrainAt(site) == "wall") return Number.MAX_SAFE_INTEGER;
-    
-    var cost = structureConstants.towerSiteCostConstants.COST_FOR_OFF_CENTER * site.getRangeTo(24, 24);
-    for (var i in otherTowers) {
-        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_OTHER_TOWER * site.getRangeTo(otherTowers[i]);
-    }
-    for (var i in roomSpawns) {
-        cost += structureConstants.towerSiteCostConstants.COST_FOR_OFF_SPAWN * site.getRangeTo(roomSpawns[i]);
-    }
-    
-    return cost;
-}
-
-/**
-* Finds the optimal site for a tower.
-* @param room {Room} The room to place the tower.
-* @returns {RoomPosition} The optimal position for the tower, or null.
-*/
-SiteFinder.findSiteForTower = function(room) {
-    var myStructures = room.find(FIND_MY_STRUCTURES);
-    var otherTowers = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_TOWER;});
-    var roomSpawns = _.filter(myStructures, (s) => {return s.structureType === STRUCTURE_SPAWN;});
-    
-    var bestCost = Number.MAX_SAFE_INTEGER;
-    var bestSite = null;
-    Utils.processAllSquaresInRoom(room, (site) => {
-    	var siteCost = _evalSiteForTower(site, otherTowers, roomSpawns);
-        if (siteCost < bestCost) {
-            bestCost = siteCost;
-            bestSite = site;
-        }
-    });
-    
-    return bestSite;
 }

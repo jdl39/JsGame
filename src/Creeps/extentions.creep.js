@@ -214,6 +214,15 @@ Creep.prototype.attackNearestEnemyCreep = function(filter) {
 }
 
 /**
+* Instructs the creep to upgrade the controller in its room.
+*/
+Creep.prototype.upgradeNearestController = function() {
+	if(this.upgradeController(this.room.controller) == ERR_NOT_IN_RANGE) {
+        this.moveTo(this.room.controller, {reusePath: 8});
+    }
+}
+
+/**
 * Instructs the creep to desposit into the nearest structure capable of receiving the deposit.
 * @param [filterOrTargets] {Array<Structure>|filterFunction} If this is an array, its structures are targeted instead of computing targets.
 * If it is a filter function, it is used to filter targets. Note that targets incapable of receiving the deposit are already filtered out.

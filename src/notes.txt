@@ -3,7 +3,8 @@ TODO:
 2. Add claimer/Spawn builder role.
 
 NOTE:
-We may encounter a bug with wandering creeps if pathing needs to go through adjascent rooms. Set maxRooms in moveTo to prevent wandering creeps.
+1. We may encounter a bug with wandering creeps if pathing needs to go through adjascent rooms. Set maxRooms in moveTo to prevent wandering creeps.
+2. So far we are good on CPU. If we need to in the future, look into caching operations.
 
 Rewrite pass 1:
 utils
@@ -21,3 +22,13 @@ creeps
 	CreepRole.js
 	HarvesterRole.js
 	UnknownCreepRole.js
+	MilitiaRole.js
+	BuilderRole.js
+
+Still need rewrite:
+creeps
+	extentions.creep.js
+	/* ColonistRole.js */
+	role.colonistTrader.js
+	role.colonistWorker.js
+	role.upgrader.js

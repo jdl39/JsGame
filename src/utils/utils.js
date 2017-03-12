@@ -171,10 +171,11 @@ Utils.pathContainsPos = function(path, pos) {
 
 /**
 * Global onTick vs Class specific onTick. Things that need to happen every tick, once per tick.
+* Called by {@link loop}.
 */
 Utils.onTick = function() {
     Memphis.repairUpdate();
-    Memphis.cleanupCreepMemory();
+    Memphis.cleanupAllMemory();
 }
 
 /**

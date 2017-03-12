@@ -121,6 +121,18 @@ Game.stats = function() {
 */
 
 /**
+* A wrapper for the numAllowed functions. Returns the number of allowed structures in the controller's room
+* given the structure type.
+* @param structureType One of the STRUCTURE_* constants.
+* @returns {number} The number of structures of structureType allowed.
+*/
+StructureController.prototype.numAllowedStructures = function(structureType) {
+    if (structureType == STRUCTURE_TOWER) return this.numAllowedTowers();
+    if (structureType == STRUCTURE_EXTENSION) return this.numAllowedExtentions();
+    throw "StructureController.numAllowedStructures: Unsupported structure type " + structureType;
+}
+
+/**
 * Returns the number of extensions allowed in the controller's room.
 * @returns {number}
 */

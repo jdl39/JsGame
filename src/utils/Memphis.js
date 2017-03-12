@@ -135,7 +135,7 @@ Memphis.roomNeedsRepairCheck = function(room) {
 }
 
 /**
-* Called every tick. Updates the structures that are marked for repair,
+* Called every tick by {@link Utils.onTick}. Updates the structures that are marked for repair,
 * removing them if they are fully repaired. Also updates the counters
 * for roomRepairCheckCounter.
 */
@@ -168,7 +168,57 @@ Memphis.updateNeedsRepair = function() {
 }
 
 /**
-* Called every tick. Removes creep memory that is no longer associated with a creep.
+* Marks the fact that new construction sites were already looked for in the given room
+* this tick.
+* @param room {Room} The room to mark.
+*/
+Memphis.markConstructionSitesFound = function(room) {
+	Memphis.ensureValue("GlobalCreepMemory");
+	Memphis.ensureValue("foundConstructionSitesForRoom", {}, Memory.GlobalCreepMemory);
+	Memory.GlobalCreepMemory.foundConstructionSitesForRoom[room.id] = true;
+}
+
+/**
+* Returns true if a builder creep already computed new construction sites for the room.
+* Computing sites is an expensive operation, and we don't want multiple builder creeps
+* all looking for new sites for the same room.
+* @param room {Room} The room checked.
+* @returns {boolean} True if sites were already found. False otherwise.
+*/
+Memphis.constructionSitesFoundThisTick = function(room) {
+	Memphis.ensureValue("GlobalCreepMemory");
+	Memphis.ensureValue("foundConstructionSitesForRoom", {}, Memory.GlobalCreepMemory);
+	if (Memory.GlobalCreepMemory.foundConstructionSitesForRoom[room.id]) return true;
+	return false;
+}
+
+/**
+* Mark that there is a road between a given spawn and the object.
+* Used by builder creeps.
+* @param spawn {StructureSpawn} The spawn.
+* @param obj {RoomObject} The object that a road has been built to.
+*/
+Memphis.markSpawnHasRoadsTo = function(spawn, obj) {
+	Memphis.ensureValue("hasRoadsTo", {}, spawn.memory);
+	spawn.memory.hasRoadsTo[obj.id] = true;
+}
+
+/**
+* Returns true if there is a road built between the spawn and the
+* object. Relies on {@link Memphis.markSpawnHasRoadsTo} to determine
+* if there is a road.
+* @param spawn {StructureSpawn} The spawn.
+* @param obj {RoomObject} The other object.
+* @returns {boolean} True if there is a road marked between the spawn and the obj.
+*/
+Memphis.spawnHasRoadsTo = function(spawn, obj) {
+	Memphis.ensureValue("hasRoadsTo", {}, spawn.memory);
+	if (spawn.memory.hasRoadsTo[obj.id]) return true;
+	return false;
+}
+
+/**
+* Called every tick by {@link Memphis.cleanupAllMemory}. Removes creep memory that is no longer associated with a creep.
 */
 Memphis.cleanupCreepMemory = function() {
 	// Cleanup bad memory.
@@ -177,4 +227,14 @@ Memphis.cleanupCreepMemory = function() {
             delete Memory.creeps[key];
         }
     }
+}
+
+/**
+* Called every tick by {@link Utils.onTick}. Cleans up Memory to remove unneeded memory.
+*/
+Memphis.cleanupAllMemory = function() {
+	Memphis.cleanupCreepMemory();
+
+	Memphis.ensureValue("GlobalCreepMemory");
+	Memory.GlobalCreepMemory.constructionSitesFoundThisTick = {};
 }

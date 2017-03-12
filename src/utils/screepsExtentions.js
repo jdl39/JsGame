@@ -83,7 +83,7 @@ Room.prototype.findPath = function(fromPos, toPos, opts) {
     return path;
 }*/
 
-var roomOldFind = Room.prototype.find;
+/*var roomOldFind = Room.prototype.find;
 Room.prototype.find = function(type, opts) {
     Memphis.ensureValue("findCache", {}, this);
 
@@ -95,7 +95,7 @@ Room.prototype.find = function(type, opts) {
     }
     if (filter) initialFind = _.filter(initialFind, filter);
     return initialFind;
-}
+}*/
 
 
 // --------------------------------------------------------------

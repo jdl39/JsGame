@@ -29,14 +29,14 @@ BuilderRole.checkForNewConstructionType = function(creep, structureType) {
 BuilderRole.checkForNewRoads = function(spawn) {
 	var site = null;
 
-	var controller = creep.room.controller;
+	var controller = spawn.room.controller;
 	if (!Memphis.spawnHasRoadsTo(spawn, controller)) {
 		var s = SiteFinder.continueRoadTo(spawn.pos, controller.pos);
 		if (s) site = s;
 		else Memphis.markSpawnHasRoadsTo(spawn, controller);
 	}
 
-	var sources = creep.room.find(FIND_SOURCES);
+	var sources = spawn.room.find(FIND_SOURCES);
 	for (var i in sources) {
 	    if (!Memphis.spawnHasRoadsTo(spawn, sources[i])) {
 	    	var s = SiteFinder.continueRoadTo(spawn.pos, sources[i].pos);
@@ -45,7 +45,7 @@ BuilderRole.checkForNewRoads = function(spawn) {
 	    }
 	}
 
-	var myStructures = creep.room.find(FIND_MY_STRUCTURES);
+	var myStructures = spawn.room.find(FIND_MY_STRUCTURES);
 	for (var i in myStructures) {
 	    if (myStructures[i] == spawn) continue;
 	    if (!Memphis.spawnHasRoadsTo(spawn, myStructures[i])) {

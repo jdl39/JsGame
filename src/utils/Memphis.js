@@ -139,7 +139,7 @@ Memphis.roomNeedsRepairCheck = function(room) {
 * removing them if they are fully repaired. Also updates the counters
 * for roomRepairCheckCounter.
 */
-Memphis.updateNeedsRepair = function() {
+Memphis.repairUpdate = function() {
 	// Decrement room check counters.
 	Memphis.ensureValue(Memphis.keyNames.ROOM_REPAIR_CHECK_COUNTER);
 	for (var roomName in Memory.roomRepairCheckCounter) {

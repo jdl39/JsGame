@@ -66,7 +66,7 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
         var creepType = creepTypes[i];
         var creepNum = creepNums[i];
         var roleCreeps = spawn.room.find(FIND_MY_CREEPS, { filter: function(c) { return c.memory.role == creepType } });
-        createResult = checkAndBuildCreep(spawn, creepType, creepNum - roleCreeps.length);
+        createResult = SpawnRole.checkAndBuildCreep(spawn, creepType, creepNum - roleCreeps.length);
         var neededForNextCreep = createResult.e;
         neededEnergy += neededForNextCreep;
 
@@ -95,7 +95,7 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("numDesiredWorkers", 2, colony);
         Memphis.ensureValue("workers", [], colony);
         Memphis.removeDeadCreepsByName(colony.workers);
-        createResult = checkAndBuildCreep(spawn, roleNames.COLONIST_WORKER, colony.numDesiredWorkers - colony.workers.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_WORKER, colony.numDesiredWorkers - colony.workers.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.workers.push(createResult.name);
@@ -105,7 +105,7 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("traders", [], colony);
         if (typeof colony.numDesiredTraders === "undefined" && colony.containersBuilt) colony.numDesiredTraders = 2;
         Memphis.removeDeadCreepsByName(colony.traders);
-        createResult = checkAndBuildCreep(spawn, roleNames.COLONIST_TRADER, colony.numDesiredTraders - colony.traders.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_TRADER, colony.numDesiredTraders - colony.traders.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.traders.push(createResult.name);

@@ -10,7 +10,7 @@ var CreepRole = function() {}
 * @param creep {Creep} The creep to find the role for.
 * @returns {Class} The creep's role.
 */
-CreepRole.findClass = function(creep) {
+CreepRole.findRole = function(creep) {
 	switch(creep.memory.role) {
 		case roleNames.HARVESTER:
 			return HarvesterRole;

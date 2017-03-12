@@ -28,7 +28,7 @@ ColonistRole.goToColony = function(creep) {
             exit = creep.pos.findClosestByPath(FIND_EXIT_RIGHT);
             break;
         default:
-        	throw "ColonistRole.goToColony: Unknown colony direction " + colonyDirection;
+        	throw new Error("ColonistRole.goToColony: Unknown colony direction " + colonyDirection);
     }
             
     if (exit !== null) {

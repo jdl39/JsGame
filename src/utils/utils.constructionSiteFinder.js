@@ -44,25 +44,27 @@ var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 * @param spawn {StructureSpawn} The spawn to find the extension for.
 * @returns {RoomPosition} The optimal position for the extension.
 */
-SiteFinder.findSiteForExtension = function(spawn) {
-	if (!spawn) return null;
+SiteFinder.findSiteForExtension = function(room) {
+	if (!room) return null;
 
 	var bestSite = null;
 	var bestCost = Number.MAX_SAFE_INTEGER;
 
-	var extentions = spawn.room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_EXTENSION;}});
+	var extentions = room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_EXTENSION;}});
 	var pathsToAvoid = [];
-	var sources = spawn.room.find(FIND_SOURCES);
+	var sources = room.find(FIND_SOURCES);
+	var spawn = room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_SPAWN}})[0];
+	if (!spawn) throw new Error("SiteFinder.findSiteForExtension: Looking for extension in room without ally spawn.");
 	for (var i in sources) {
 		pathsToAvoid.push(spawn.pos.findPathTo(sources[i], {ignoreCreeps:true}));
 	}
-	pathsToAvoid.push(spawn.pos.findPathTo(spawn.room.controller, {ignoreCreeps:true}));
+	pathsToAvoid.push(spawn.pos.findPathTo(room.controller, {ignoreCreeps:true}));
 
 	Utils.processAllSquaresInRoom(spawn.room, (squarePos) => {
 		var cost = _evalSiteForExtention(squarePos, spawn, extentions, pathsToAvoid);
 		if (cost < bestCost) {
 			bestCost = cost;
-			bestSite = spawn.room.getPositionAt(x, y);
+			bestSite = squarePos;
 		}
 	})
 
@@ -74,7 +76,7 @@ var _evalSiteForTower = function(site, otherTowers, roomSpawns) {
     var badSite = false;
     Utils.processNearby(site, (s) => {
     	var structures = s.lookFor(LOOK_STRUCTURES);
-    	if (structures.length && (structures[0].structureType !== STRUCTURE_ROAD || (x == site.x && y == site.y))) {
+    	if (structures.length && (structures[0].structureType !== STRUCTURE_ROAD || (s.x == site.x && s.y == site.y))) {
             badSite = true;
             return true;
         }
@@ -127,7 +129,7 @@ SiteFinder.findSiteForTower = function(room) {
 SiteFinder.findSiteForStructure = function(room, structureType) {
 	if (structureType == STRUCTURE_EXTENSION) return SiteFinder.findSiteForExtension(room);
 	if (structureType == STRUCTURE_TOWER) return SiteFinder.findSiteForTower(room);
-	throw "SiteFinder.findSiteForStruture: Unsupported structure type " + structureType;
+	throw new Error("SiteFinder.findSiteForStruture: Unsupported structure type " + structureType);
 }
 
 var _continueRoadToInSameRoom = function(startPos, endPos) {
@@ -150,7 +152,7 @@ var _continueRoadToInSameRoom = function(startPos, endPos) {
 		}
 
 	    if (roadNeeded) {
-		    if (startRoom.createConstructionSite(pos, STRUCTURE_ROAD) == ERR_INVALID_TARGET) continue;
+		    if (Game.rooms[startPos.roomName].createConstructionSite(pos, STRUCTURE_ROAD) == ERR_INVALID_TARGET) continue;
 		    return pos;
 	    }
 	}

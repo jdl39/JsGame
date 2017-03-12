@@ -129,7 +129,7 @@ Game.stats = function() {
 StructureController.prototype.numAllowedStructures = function(structureType) {
     if (structureType == STRUCTURE_TOWER) return this.numAllowedTowers();
     if (structureType == STRUCTURE_EXTENSION) return this.numAllowedExtentions();
-    throw "StructureController.numAllowedStructures: Unsupported structure type " + structureType;
+    throw new Error("StructureController.numAllowedStructures: Unsupported structure type " + structureType);
 }
 
 /**

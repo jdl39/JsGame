@@ -66,7 +66,11 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
         var creepType = creepTypes[i];
         var creepNum = creepNums[i];
         var roleCreeps = spawn.room.find(FIND_MY_CREEPS, { filter: function(c) { return c.memory.role == creepType } });
-        createResult = SpawnRole.checkAndBuildCreep(spawn, creepType, creepNum - roleCreeps.length);
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            creepType,
+            creepNum - roleCreeps.length,
+            (creepType == roleNames.HARVESTER && roleCreeps.length == 0));
         var neededForNextCreep = createResult.e;
         neededEnergy += neededForNextCreep;
 
@@ -94,7 +98,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("upgradeToOwnedRoom", false, colony);
         Memphis.ensureValue("claimerDeployed", false, colony);
         if (colony.upgradeToOwnedRoom && !colony.claimerDeployed) {
-            createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.CLAIMER, 1, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+            createResult = SpawnRole.checkAndBuildCreep(
+                spawn,
+                roleNames.CLAIMER,
+                1,
+                false,
+                {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
             neededEnergy += createResult.e;
             if (typeof createResult.name === "string") {
                 colony.claimerDeployed = true;
@@ -111,7 +120,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("numDesiredWorkers", 2, colony);
         Memphis.ensureValue("workers", [], colony);
         Memphis.removeDeadCreepsByName(colony.workers);
-        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_WORKER, colony.numDesiredWorkers - colony.workers.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            roleNames.COLONIST_WORKER,
+            colony.numDesiredWorkers - colony.workers.length,
+            false,
+            {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.workers.push(createResult.name);
@@ -121,7 +135,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("traders", [], colony);
         if (typeof colony.numDesiredTraders === "undefined" && colony.containersBuilt) colony.numDesiredTraders = 2;
         Memphis.removeDeadCreepsByName(colony.traders);
-        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_TRADER, colony.numDesiredTraders - colony.traders.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            roleNames.COLONIST_TRADER,
+            colony.numDesiredTraders - colony.traders.length,
+            false,
+            {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.traders.push(createResult.name);
@@ -139,7 +158,7 @@ SpawnRole.handleColonies = function(spawn) {
 * @param [additionalMemory=EmptyObject] {Object} Memory in addition to creep role that the creep should be given.
 * @returns {SpawnRole.CreateResult} {@link SpawnRole.CreateResult}
 */
-SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMemory) {
+SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, useSmallest, additionalMemory) {
     if (typeof additionalMemory === "undefined") additionalMemory = {};
     additionalMemory.role = roleName;
 
@@ -154,13 +173,11 @@ SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMe
         }
         
         // If we are really low on workers, we make a littler dude.
-        if (numNeeded > 1) {
+        if (numNeeded > 1 || useSmallest) {
             variant += numNeeded - 1;
-            if (variant >= creepBodies[roleName].length) variant = creepBodies[roleName].length - 1;
+            if (variant >= creepBodies[roleName].length || useSmallest) variant = creepBodies[roleName].length - 1;
             eNeeded = Utils.bodyCost(creepBodies[roleName][variant]);
         }
-        
-        // TODO: maybe re-add die out logic?
         
         if (spawn.energyIncludingExtentions() >= eNeeded) {
             errCode = spawn.createCreep(creepBodies[roleName][variant], undefined, additionalMemory);

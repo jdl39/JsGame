@@ -25,6 +25,8 @@ SpawnRole.prototype = Object.create(StructureRole.prototype);
 */
 
 SpawnRole.run = function(spawn) {
+    SpawnRole.updateForControllerLevel(spawn);
+
     var neededEnergy = spawn.memory.emergencyEnergy ? spawn.memory.emergencyEnergy : 0;
     var emergencyEnergy = neededEnergy;
 
@@ -47,13 +49,9 @@ SpawnRole.run = function(spawn) {
 * @returns {number} Energy needed for the creation.
 */
 SpawnRole.spawnEssentialCreepTypes = function(spawn) {
-	Memphis.ensureValue("numHarvesters", 4, spawn.memory);
 	var numHarvesters = spawn.memory.numHarvesters;
-	Memphis.ensureValue("numBuilders", 4, spawn.memory);
 	var numBuilders = spawn.memory.numBuilders;
-	Memphis.ensureValue("numUpgraders", 2, spawn.memory);
 	var numUpgraders = spawn.memory.numUpgraders;
-	Memphis.ensureValue("numMilitia", 0, spawn.memory);
 	var numMilitia = spawn.memory.numMilitia;
 
 	// Creep types, in order of priority.
@@ -187,4 +185,21 @@ SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, useSmallest,
         }
     }
     return {e: eNeeded, name: errCode};
+}
+
+SpawnRole.updateForControllerLevel = function(spawn) {
+    Memphis.ensureValue("updatedForControllerLevel", 0, spawn.memory);
+    if (spawn.room.controller.level == spawn.memory.updatedForControllerLevel) return;
+
+    // Update the creep numbers.
+    Memphis.ensureValue("numHarvesters", 0, spawn.memory);
+    Memphis.ensureValue("numBuilders", 0, spawn.memory);
+    Memphis.ensureValue("numUpgraders", 0, spawn.memory);
+    Memphis.ensureValue("numMilitia", 0, spawn.memory);
+    var updateNumbers = spawn.room.controller.getStandardCreepRoleNumbers();
+    spawn.memory.numHarvesters = updateNumbers.numHarvesters;
+    spawn.memory.numBuilders = updateNumbers.numBuilders;
+    spawn.memory.numUpgraders = updateNumbers.numUpgraders;
+
+    spawn.memory.updatedForControllerLevel = spawn.room.controller.level;
 }

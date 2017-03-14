@@ -24,6 +24,8 @@ CreepRole.findRole = function(creep) {
 			return ColonistTraderRole;
 		case roleNames.UPGRADER:
 			return UpgraderRole;
+		case roleNames.CLAIMER:
+			return ClaimerRole;
 		default:
 			return UnknownCreepRole;
 	}

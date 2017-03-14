@@ -228,6 +228,15 @@ Creep.prototype.upgradeNearestController = function() {
 }
 
 /**
+* Instructs the creep to claim the controller in its room.
+*/
+Creep.prototype.claimNearestController = function() {
+	if (this.claimController(this.room.controller) == ERR_NOT_IN_RANGE) {
+		this.moveTo(this.room.controller, {reusePath: 8});
+	}
+}
+
+/**
 * Instructs the creep to desposit into the nearest structure capable of receiving the deposit.
 * @param [filterOrTargets] {Array<Structure>|filterFunction} If this is an array, its structures are targeted instead of computing targets.
 * If it is a filter function, it is used to filter targets. Note that targets incapable of receiving the deposit are already filtered out.
@@ -243,7 +252,7 @@ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceTy
 
  	var closest = this.pos.findClosestByPath(targets, {ignoreCreeps:true});
  	if (!closest) return null;
- 	if (this.transfer(closest, resourceType) == ERR_NOT_IN_RANGE) this.moveTo(closest);
+ 	if (this.transfer(closest, resourceType) == ERR_NOT_IN_RANGE) this.moveTo(closest, {ignoreCreeps:true});
  	return closest;
 }
  
@@ -428,7 +437,8 @@ Creep.prototype.roleColor = function() {
 Creep.prototype.checkUnownedStructureRepair = function(force) {
  	if (!force && !Memphis.roomNeedsRepairCheck(this.room)) return;
  	var structuresToRepair = this.room.find(FIND_STRUCTURES, {filter: (s) => {
-        return (s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && s.hits <= s.hitsMax * structureConstants.UNOWNED_STRUCTURE_REPAIR_LIMIT; 
+        return ((s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && s.hits <= s.hitsMax * structureConstants.UNOWNED_STRUCTURE_REPAIR_LIMIT) ||
+        		((s.structureType == STRUCTURE_WALL) && s.hits <= structureConstants.WALL_HITS_PER_LEVEL * this.room.controller.level * structureConstants.UNOWNED_STRUCTURE_REPAIR_LIMIT); 
     }});
     for (var i in structuresToRepair) {
     	Memphis.markForRepair(structuresToRepair[i]);

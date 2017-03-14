@@ -4,17 +4,22 @@
 */
 var SiteFinder = {};
 
+SiteFinder.siteIsUnbuildable = function(site) {
+	var objects = site.look();
+	for (var i in objects) {
+		var object = objects[i];
+		if (object.type == "structure") return true;
+		if (object.type == "terrain" && object.terrain == "wall") return true;
+	}
+	return false;
+}
+
 // @cpu AVERAGE * 3 + LOW * (extentions + 1)
 var _evalSiteForExtention = function(sitePos, spawn, extentions, pathsToAvoid) {
 	var cost = 0;
 
 	// Don't build on invalid land
-	var objects = sitePos.look();
-	for (var i in objects) {
-		var object = objects[i];
-		if (object.type == "structure") return Number.MAX_SAFE_INTEGER;
-		if (object.type == "terrain" && object.terrain == "wall") return Number.MAX_SAFE_INTEGER;
-	}
+	if (SiteFinder.siteIsUnbuildable(sitePos)) return Number.MAX_SAFE_INTEGER;
 
 	// Don't build right next to anything, but try to be as close to everything as possible.
 	var nonWalkableStructures = spawn.room.find(FIND_STRUCTURES, {filter: (s) => { return !s.isWalkable(); }});
@@ -117,6 +122,48 @@ SiteFinder.findSiteForTower = function(room) {
     });
     
     return bestSite;
+}
+
+var _evalSiteForSpawn = function(site, room) {
+	// First, check for a bad site.
+	if (SiteFinder.siteIsUnbuildable(site)) return Number.MAX_SAFE_INTEGER;
+
+	var cost = 0;
+
+	var spawns = room.find(FIND_MY_STRUCTURES, {filter: (s) => {return s.structureType == STRUCTURE_SPAWN}});
+	for (var i in spawns) {
+		var otherSpawn = spawns[i];
+		cost += structureConstants.spawnSiteCostConstants.COST_FOR_OFF_SPAWN * site.getRangeTo(otherSpawn.pos);
+	}
+
+	var controller = room.controller;
+	cost += structureConstants.spawnSiteCostConstants.COST_FOR_OFF_CONTROLLER * site.getRangeTo(controller.pos);
+
+	var sources = room.find(FIND_SOURCES);
+	for (var i in sources) {
+		var source = sources[i];
+		cost += structureConstants.spawnSiteCostConstants.COST_FOR_OFF_SOURCE * site.getRangeTo(source.pos);
+	}
+
+	Utils.processNearby(site, (pos) => {
+		if (SiteFinder.siteIsUnbuildable(pos)) cost += structureConstants.spawnSiteCostConstants.COST_FOR_UNCLEAR_SURROUNDING;
+	}, true, structureConstants.spawnSiteCostConstants.SURROUNDING_RANGE);
+
+	return cost;
+}
+
+SiteFinder.findSiteForSpawn = function(room) {
+    var bestCost = Number.MAX_SAFE_INTEGER;
+    var bestSite = null;
+	Utils.processAllSquaresInRoom(room, (site) => {
+		var siteCost = _evalSiteForSpawn(site, room);
+		if (siteCost < bestCost) {
+            bestCost = siteCost;
+            bestSite = site;
+        }
+	});
+
+	return bestSite;
 }
 
 /**

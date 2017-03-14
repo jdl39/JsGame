@@ -17,6 +17,8 @@ var roleNames = {
     COLONIST_WORKER: "colonist.worker",
     /** @constant {string} */
     COLONIST_TRADER: "colonist.trader",
+    /** @constant {string} */
+    CLAIMER: "claimer",
     
     /** @constant {string} */
     SPAWN_DEFAULT: "default",
@@ -57,6 +59,8 @@ creepBodies[roleNames.MILITIA] = [
     [ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE],
     [ATTACK, MOVE]];
 
+creepBodies[roleNames.CLAIMER] = [[WORK, WORK, CARRY, CARRY, CARRY, CLAIM, MOVE, MOVE, MOVE]];
+
 /**
 * Constants pertaining to structures.
 * @namespace
@@ -78,7 +82,22 @@ var structureConstants = {
         COST_FOR_OFF_CENTER: 1,
         COST_FOR_OFF_SPAWN: 5,
         COST_FOR_OFF_OTHER_TOWER: -4,
-    }
+    },
+
+    /**
+    * Constants used for finding the optimal spawn site.
+    * @constant {Object}
+    */
+    spawnSiteCostConstants: {
+        COST_FOR_OFF_SPAWN: -4,
+        COST_FOR_OFF_CONTROLLER: 2,
+        COST_FOR_OFF_SOURCE: 1,
+        COST_FOR_UNCLEAR_SURROUNDING: 2,
+        SURROUNDING_RANGE: 2
+    },
+
+    /** @constant {number} */
+    WALL_HITS_PER_LEVEL: 50000,
 };
 
 /**

@@ -53,13 +53,16 @@ Utils.bodyCost = function(body) {
 * @param pos {RoomPosition} The position to process around.
 * @param callback {pNearbyCp} The function to call on nearby pos.
 * @param [includePos=true] {boolean} Whether pos should be passed to the callback as well.
+* @param [range=1] {number} The range withing which to process. 1 equates to the eight squares surrounding
+* the pos.
 */ 
-Utils.processNearby = function(pos, callback, includePos) {
+Utils.processNearby = function(pos, callback, includePos, range) {
     if (typeof includePos === "undefined") includePos = true;
+    if (typeof range === "undefined") range = 1;
 
-    for (var x = pos.x - 1; x <= pos.x + 1; x++) {
+    for (var x = pos.x - range; x <= pos.x + range; x++) {
         if (x < 0 || x >= 50) continue;
-        for (var y = pos.y - 1; y <= pos.y + 1; y++) {
+        for (var y = pos.y - range; y <= pos.y + range; y++) {
             if (y < 0 || y >= 50) continue;
             if (x == pos.x && y == pos.y && !includePos) continue;
             if (callback(new RoomPosition(x, y, pos.roomName))) return;

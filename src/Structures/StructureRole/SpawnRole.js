@@ -90,8 +90,24 @@ SpawnRole.handleColonies = function(spawn) {
     for (var colonyIndex in spawn.memory.colonies) {
         var colony = spawn.memory.colonies[colonyIndex];
 
+        // First check: should we upgrade colony to owned room.
+        Memphis.ensureValue("upgradeToOwnedRoom", false, colony);
+        Memphis.ensureValue("claimerDeployed", false, colony);
+        if (colony.upgradeToOwnedRoom && !colony.claimerDeployed) {
+            createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.CLAIMER, 1, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+            neededEnergy += createResult.e;
+            if (typeof createResult.name === "string") {
+                colony.claimerDeployed = true;
+                colony.numDesiredTraders = 0;
+                break;
+            }
+        }
+
         // REWRITETODO: Consider decomposing these blocks since they are similar.
         // First, try to build a worker.
+        // BUG: If we are claiming, we still build workers; they are converted by the claimers.
+        // however, if all claimers are dead, workers may not convert. Consider converting all workers
+        // here if we are claiming.
         Memphis.ensureValue("numDesiredWorkers", 2, colony);
         Memphis.ensureValue("workers", [], colony);
         Memphis.removeDeadCreepsByName(colony.workers);

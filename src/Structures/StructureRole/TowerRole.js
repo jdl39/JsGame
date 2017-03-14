@@ -53,7 +53,8 @@ TowerRole.healNearestAlly = function(tower) {
 * @returns {Structure} The structure repaired.
 */
 TowerRole.repairNearestStructure = function(tower) {
-    var damagedStructures = Memphis.getStructuresThatNeedRepair();
+    // Don't do walls or ramparts because those can be repaired FOREVER.
+    var damagedStructures = Memphis.getStructuresThatNeedRepair((s) => {return s.structureType !== STRUCTURE_WALL && s.structureType !== STRUCTURE_RAMPART});
     var structureToRepair = null;
     if (damagedStructures.length) {
         structureToRepair = tower.pos.findClosestByRange(damagedStructures);

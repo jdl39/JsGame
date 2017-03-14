@@ -166,7 +166,8 @@ Memphis.repairUpdate = function() {
         var object = Game.getObjectById(id);
         if (!object ||
             !(object instanceof Structure) ||
-            object.hits == object.hitsMax) {
+            object.hits == object.hitsMax ||
+            (object.structureType == STRUCTURE_WALL || object.structureType == STRUCTURE_RAMPART) && object.hits >= structureConstants.WALL_HITS_PER_LEVEL * object.room.controller.level) {
             delete Memory.needsRepair[id];
         }
     }
@@ -174,7 +175,10 @@ Memphis.repairUpdate = function() {
     // Mark owned structures for repair if necessary.
     for (var id in Game.structures) {
         var structure = Game.structures[id];
-        if (structure.hits * 1.0 / structure.hitsMax <= structureConstants.OWNED_STRUCTURE_REPAIR_LIMIT) {
+        if (structure.structureType == STRUCTURE_RAMPART) {
+        	if (structure.hits <= structureConstants.WALL_HITS_PER_LEVEL * structure.room.controller.level * structureConstants.OWNED_STRUCTURE_REPAIR_LIMIT) Memory.needsRepair[id] = true;
+		}
+        else if (structure.hits * 1.0 / structure.hitsMax <= structureConstants.OWNED_STRUCTURE_REPAIR_LIMIT) {
             Memory.needsRepair[id] = true;
         }
     }

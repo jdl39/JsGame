@@ -145,6 +145,15 @@ Creep.prototype.harvestOrWithdrawEnergy = function(target) {
      
     return this.withdraw(target, RESOURCE_ENERGY);
 }
+
+/**
+* Instructs the creep to move to and harvest/withdraw from the target. CPU is cheaper
+* than harvest from nearest source, if we already have a source in mind.
+* @param target {Source|Resource|Structure} The target of the harvest/withdraw from.
+*/
+Creep.prototype.goToAndHarvestOrWithdrawEnergy = function(target) {
+	if (this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) this.moveTo(target);
+}
  
  /** 
  * Searches for nearest source or dropped resource and attempts to harvest from

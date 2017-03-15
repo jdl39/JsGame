@@ -233,14 +233,16 @@ StructureController.prototype.getStandardCreepRoleNumbers = function() {
             return {
                 numHarvesters: 4,
                 numBuilders: 4,
-                numUpgraders: 2
+                numUpgraders: 2,
+                numResourceRunners: 0,
             };
         case 4:
         case 5:
             return {
                 numHarvesters: 2 * numSources,
                 numBuilders: 2 * numSources,
-                numUpgraders: 2
+                numUpgraders: 2,
+                numResourceRunners: 1,
             };
         case 6:
         case 7:
@@ -248,7 +250,8 @@ StructureController.prototype.getStandardCreepRoleNumbers = function() {
             return {
                 numHarvesters: numSources + 1,
                 numBuilders: numSources,
-                numUpgraders: 1
+                numUpgraders: 1,
+                numResourceRunners: 1,
             }
     }
 }

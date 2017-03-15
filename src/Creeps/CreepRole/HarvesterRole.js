@@ -30,14 +30,16 @@ HarvesterRole.run = function(creep) {
     var allDepositableStructs = Utils.getAllDepositCapableStructures(creep.room);
 
     // Filter by priority order.
+    var roomHasRunner = (creep.room.find(FIND_MY_CREEPS, {filter:(c) => {return c.memory.role == roleNames.RESOURCE_RUNNER}}).length > 0);
+    var roomContainers = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE;});
     // 1 Towers. They are our main defense, so need to be kept fueled.
     var targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_TOWER;});
     // 2 Spawns. They are necessary for keeping the creep population afloat.
-    if (targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_SPAWN;});
+    if (targets.length == 0 && (!roomHasRunner || roomContainers.length == 0)) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_SPAWN;});
     // 3 Extensions. They are similar to spawns.
-    if (targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_EXTENSION;});
+    if (targets.length == 0 && (!roomHasRunner || roomContainers.length == 0)) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_EXTENSION;});
     // 4 Containers and storage. If everything else is fully fueled, we just store the energy.
-    if (targets.length == 0) targets = _.filter(allDepositableStructs, (s) => {return s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE;});
+    if (targets.length == 0) targets = roomContainers;
 
     // Finally, deposit.
     creep.depositToNearestStructure(targets);

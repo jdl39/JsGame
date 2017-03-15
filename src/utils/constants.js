@@ -15,6 +15,8 @@ var roleNames = {
     MILITIA: "militia",
     /** @constant {string} */
     MINER: "miner",
+    /** @constnat {string} */
+    RESOURCE_RUNNER: "resourceRunner",
     /** @constant {string} */
     COLONIST_WORKER: "colonist.worker",
     /** @constant {string} */
@@ -56,7 +58,11 @@ creepBodies[roleNames.UPGRADER] = [
     [WORK, CARRY, MOVE]];
 creepBodies[roleNames.MINER] = [
     [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]
-]
+];
+creepBodies[roleNames.RESOURCE_RUNNER] = [
+    [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE]
+];
     
 creepBodies[roleNames.COLONIST_WORKER] = [
     [WORK, WORK, CARRY, CARRY, MOVE, MOVE]];
@@ -132,3 +138,9 @@ var visualConstants = {
 var miscConstants = {
     CACHE_LIFETIME: 5000,
 }
+
+/**
+* Represents all resource types.
+* @constant
+*/
+const RESOURCE_ALL = "resourceAll";

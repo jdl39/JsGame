@@ -19,6 +19,6 @@ MinerRole.run = function(creep) {
 	if (creep.memory.mining) {
 		creep.mineRoomMineral();
 	} else {
-		creep.depositToNearestContainer(Object.keys(creep.carry)[0]);
+		creep.depositToNearestContainer(Object.keys(creep.carry)[1]);
 	}
 }

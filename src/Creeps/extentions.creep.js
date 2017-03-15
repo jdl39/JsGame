@@ -154,6 +154,23 @@ Creep.prototype.harvestOrWithdrawEnergy = function(target) {
 Creep.prototype.goToAndHarvestOrWithdrawEnergy = function(target) {
 	if (this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) this.moveTo(target);
 }
+
+/**
+* Instructs the creep to move to the target and deposit the resource type into it.
+* @param target {Structure} The structure to deposit into.
+* @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants.
+*/
+Creep.prototype.goToAndDeposit = function(target, resourceType) {
+	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
+	var notInRange = false;
+	if (resourceType == RESOURCE_ALL) {
+		for (var rType in this.carry) {
+			if (this.transfer(target, rType) == ERR_NOT_IN_RANGE) notInRange = true;
+		}
+	} else if (this.transfer(target, resourceType) == ERR_NOT_IN_RANGE) notInRange = true;
+
+	if (notInRange) this.moveTo(target);
+}
  
  /** 
  * Searches for nearest source or dropped resource and attempts to harvest from
@@ -176,9 +193,9 @@ Creep.prototype.harvestFromNearestSource = function() {
 */
 Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, resourceType) {
 	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
-	if (resourceType != RESOURCE_ENERGY) throw new Error("Creep.harvestOrWithdrawFromNearestSource: Resource type not supported: " + resourceType);
 
 	var intentableTargets = Array.isArray(filterOrTargets) ? filterOrTargets : null;
+	var energyTargets = [];
 	if (!intentableTargets) {
     	var sources = resourceType == RESOURCE_ENERGY ? this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}}) : [];
     	var spawns = resourceType == RESOURCE_ENERGY ? this.room.find(FIND_MY_SPAWNS) : [];
@@ -194,7 +211,7 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, r
         	return spawn.energy >= energyNeeded;
     	});
     
-    	var energyTargets = sources.concat(spawns);
+    	energyTargets = sources.concat(spawns);
     	energyTargets = energyTargets.concat(containers);
     	energyTargets = energyTargets.concat(resourceDrops);
 

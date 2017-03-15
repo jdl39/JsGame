@@ -219,6 +219,8 @@ StructureController.prototype.numAllowedTowers = function() {
 /**
 * Gets the standard number of each of the essential creep roles, depending on the
 * level of the room (which affects how large our expected creeps are).
+* TODO: This should really be a function of the total energyCapacity of the
+* room, not the controller. May be different if extensions are destroyed/not yet built.
 * @returns {Object} An object with the role numbers.
 */
 StructureController.prototype.getStandardCreepRoleNumbers = function() {

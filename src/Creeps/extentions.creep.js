@@ -169,42 +169,56 @@ Creep.prototype.harvestFromNearestSource = function() {
 /**
 * Searches for the nearest source, spawn (with unreserved energy), container, storage, or dropped energy to
 * gather energy from, and attempts to gather it. NOTE: Only works with RESOURCE_ENERGY so far.
-* @param [filterFunction] {filterFunction} A filter on the possible energy targets.
+* @param [filterFunction] {filterFunction|Array<RoomObject} A filter on the possible energy targets, or a list of targets.
 * @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource to harvest/withdraw. Currently only RESOURCE_ENERGY is supported.
 * @returns {RoomObject} The object we are gathering from.
 * @cpu HIGH TODO: Consider possible caching solutions.
 */
-Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterFunction, resourceType) {
+Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, resourceType) {
 	if (typeof resourceType === "undefined") resourceType = RESOURCE_ENERGY;
 	if (resourceType != RESOURCE_ENERGY) throw new Error("Creep.harvestOrWithdrawFromNearestSource: Resource type not supported: " + resourceType);
 
-    var sources = this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}});
-    var spawns = this.room.find(FIND_MY_SPAWNS);
-    var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[resourceType] > 0; }});
-    var resourceDrops = this.room.find(FIND_DROPPED_ENERGY);
+	var intentableTargets = Array.isArray(filterOrTargets) ? filterOrTargets : null;
+	if (!intentableTargets) {
+    	var sources = resourceType == RESOURCE_ENERGY ? this.room.find(FIND_SOURCES, {filter: (s) => {return s.energy > 0;}}) : [];
+    	var spawns = resourceType == RESOURCE_ENERGY ? this.room.find(FIND_MY_SPAWNS) : [];
+    	var containers = this.room.find(FIND_STRUCTURES, {filter: (s) => {return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[resourceType] > 0; }});
+    	var resourceDrops = this.room.find(FIND_DROPPED_RESOURCES, {filter: (r) => {resourceType == RESOURCE_ALL || r.resourceType == resourceType}});
     
-    var theCreep = this;
-    spawns = _.filter(spawns, function(spawn) {
-        var energyNeeded = theCreep.carryCapacity;
-        if (typeof spawn.memory.reservedEnergy !== "undefined") {
-            energyNeeded += spawn.memory.reservedEnergy;
-        }
-        return spawn.energy >= energyNeeded;
-    });
+    	var theCreep = this;
+    	spawns = _.filter(spawns, function(spawn) {
+        	var energyNeeded = theCreep.carryCapacity;
+        	if (typeof spawn.memory.reservedEnergy !== "undefined") {
+            	energyNeeded += spawn.memory.reservedEnergy;
+        	}
+        	return spawn.energy >= energyNeeded;
+    	});
     
-    var energyTargets = sources.concat(spawns);
-    energyTargets = energyTargets.concat(containers);
-    energyTargets = energyTargets.concat(resourceDrops);
+    	var energyTargets = sources.concat(spawns);
+    	energyTargets = energyTargets.concat(containers);
+    	energyTargets = energyTargets.concat(resourceDrops);
 
-    if (filterFunction) energyTargets = _.filter(energyTargets, filterFunction);
+    	if (filterOrTargets) energyTargets = _.filter(energyTargets, filterOrTargets);
 
-    var intentableTargets = Utils.filterByIntent(energyTargets);
+    	intentableTargets = Utils.filterByIntent(energyTargets);
+	}
     
     var target = this.pos.findClosestByPath(intentableTargets, {ignoreCreeps:true});
     if (!target) target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
     
-    if (target && this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) {
-        this.moveTo(target);
+    if (target && !this.pos.isNearTo(target)) this.moveTo(target);
+    else {
+    	if (target instanceof Source) this.harvest(target);
+    	else if (target instanceof Resource) this.pickup(target);
+    	else if (target instanceof Structure) {
+    		if (resourceType == RESOURCE_ALL) {
+    			if (structure.store) {
+    				for (var rType in structure.store) creep.withdraw(structure, rType);
+    			}
+    		} else {
+    			creep.withdraw(structure, resourceType);
+    		}
+    	}
     }
 
     return target;
@@ -284,13 +298,14 @@ Creep.prototype.depositToNearestContainer = function(resourceType) {
  
  /**
  * Instructs the creep to withdraw from the nearest container or storage (or dropped energy).
+ * @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource type to deposit.
  * @returns {Structure|Resource} The object to withdraw from.
  */
-Creep.prototype.withdrawFromNearestContainer = function() {
+Creep.prototype.withdrawFromNearestContainer = function(resourceType) {
  	return this.harvestOrWithdrawFromNearestSource((s) => {
  		return (s instanceof Structure && (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)) ||
  				(s instanceof Resource);
- 	});
+ 	}, resourceType);
 }
 
 /**

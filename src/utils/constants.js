@@ -132,3 +132,9 @@ var visualConstants = {
 var miscConstants = {
     CACHE_LIFETIME: 5000,
 }
+
+/**
+* Represents all resource types.
+* @constant
+*/
+const RESOURCE_ALL = "resourceAll";

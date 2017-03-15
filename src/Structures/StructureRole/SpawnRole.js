@@ -34,6 +34,7 @@ SpawnRole.run = function(spawn) {
     neededEnergy += SpawnRole.spawnEssentialCreepTypes(spawn);
 
     // Next check for mining.
+    SpawnRole.checkAndBuildMiner(spawn);
     
     // Then, see if we have any colonies we need to upkeep.
     if (neededEnergy <= emergencyEnergy) {

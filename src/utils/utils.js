@@ -228,14 +228,13 @@ Utils.getAllDepositCapableStructures = function(room, resourceType, filter) {
         });
     } else if (resourceType !== RESOURCE_POWER) {
         // This means we are working with a molecule compound.
-        throw new Error("Molecule compound depositing not yet supported.");
-        /*return room.find(FIND_STRUCTURES, {
+        return room.find(FIND_STRUCTURES, {
             filter: (structure) => {
-                // NOTE: May need to get labs to work with this.
+                // TODO: May need to get labs to work with this.
                 return (structure.structureType == STRUCTURE_CONTAINER ||
                         structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity;
             }
-        })*/
+        })
     } else {
         // We are working with Power.
         throw new Error("Power depositing not yet supported.");

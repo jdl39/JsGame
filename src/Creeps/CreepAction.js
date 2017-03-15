@@ -29,7 +29,7 @@ var CreepAction = function (actionType, target) {
 	* @returns {boolean} True if this action cancels the other.
 	*/
 	this.supercedes = function(otherAction) {
-		var otherActionType = (typeof otherAction === "string") otherAction : otherAction.actionType;
+		var otherActionType = (typeof otherAction === "string") ? otherAction : otherAction.actionType;
 		for (var i in CreepAction.priorityOrders) {
 			var priorityOrder = CreepAction.priorityOrders[i];
 			var thisActionIndex = -1;

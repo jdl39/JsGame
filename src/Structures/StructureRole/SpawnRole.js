@@ -25,11 +25,16 @@ SpawnRole.prototype = Object.create(StructureRole.prototype);
 */
 
 SpawnRole.run = function(spawn) {
+    SpawnRole.updateForControllerLevel(spawn);
+
     var neededEnergy = spawn.memory.emergencyEnergy ? spawn.memory.emergencyEnergy : 0;
     var emergencyEnergy = neededEnergy;
 
     // First make sure everything essential is spawned.
     neededEnergy += SpawnRole.spawnEssentialCreepTypes(spawn);
+
+    // Next check for mining.
+    SpawnRole.checkAndBuildMiner(spawn);
     
     // Then, see if we have any colonies we need to upkeep.
     if (neededEnergy <= emergencyEnergy) {
@@ -47,18 +52,15 @@ SpawnRole.run = function(spawn) {
 * @returns {number} Energy needed for the creation.
 */
 SpawnRole.spawnEssentialCreepTypes = function(spawn) {
-	Memphis.ensureValue("numHarvesters", 4, spawn.memory);
 	var numHarvesters = spawn.memory.numHarvesters;
-	Memphis.ensureValue("numBuilders", 4, spawn.memory);
 	var numBuilders = spawn.memory.numBuilders;
-	Memphis.ensureValue("numUpgraders", 2, spawn.memory);
 	var numUpgraders = spawn.memory.numUpgraders;
-	Memphis.ensureValue("numMilitia", 0, spawn.memory);
 	var numMilitia = spawn.memory.numMilitia;
+    var numResourceRunners = spawn.memory.numResourceRunners;
 
 	// Creep types, in order of priority.
-	var creepTypes = [roleNames.HARVESTER, roleNames.MILITIA, roleNames.UPGRADER, roleNames.BUILDER];
-    var creepNums = [numHarvesters, numMilitia, numUpgraders, numBuilders];
+	var creepTypes = [roleNames.HARVESTER, roleNames.MILITIA, roleNames.UPGRADER, roleNames.BUILDER, roleNames.RESOURCE_RUNNER];
+    var creepNums = [numHarvesters, numMilitia, numUpgraders, numBuilders, numResourceRunners];
 
     var createResult = null;
     var neededEnergy = 0;
@@ -66,7 +68,11 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
         var creepType = creepTypes[i];
         var creepNum = creepNums[i];
         var roleCreeps = spawn.room.find(FIND_MY_CREEPS, { filter: function(c) { return c.memory.role == creepType } });
-        createResult = SpawnRole.checkAndBuildCreep(spawn, creepType, creepNum - roleCreeps.length);
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            creepType,
+            creepNum - roleCreeps.length,
+            (creepType == roleNames.HARVESTER && roleCreeps.length == 0) /* TODO: Do we want this? kinda dangerous when we only have 2 harvesters... */);
         var neededForNextCreep = createResult.e;
         neededEnergy += neededForNextCreep;
 
@@ -76,6 +82,17 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
         }
     }
     return neededEnergy;
+}
+
+SpawnRole.checkAndBuildMiner = function(spawn) {
+    if (spawn.memory.extractorBuilt || spawn.room.find(FIND_MY_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_EXTRACTOR}}).length) spawn.memory.extractorBuilt = true;
+    else return;
+
+    var mineral = spawn.room.find(FIND_MINERALS)[0];
+    if (mineral && mineral.mineralAmount > 0) {
+        var minerNum = spawn.room.find(FIND_MY_CREEPS, {filter:(c) => {return c.memory.role == roleNames.MINER}}).length;
+        SpawnRole.checkAndBuildCreep(spawn, roleNames.MINER, 1 - minerNum);
+    }
 }
 
 /**
@@ -94,7 +111,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("upgradeToOwnedRoom", false, colony);
         Memphis.ensureValue("claimerDeployed", false, colony);
         if (colony.upgradeToOwnedRoom && !colony.claimerDeployed) {
-            createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.CLAIMER, 1, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+            createResult = SpawnRole.checkAndBuildCreep(
+                spawn,
+                roleNames.CLAIMER,
+                1,
+                false,
+                {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
             neededEnergy += createResult.e;
             if (typeof createResult.name === "string") {
                 colony.claimerDeployed = true;
@@ -111,7 +133,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("numDesiredWorkers", 2, colony);
         Memphis.ensureValue("workers", [], colony);
         Memphis.removeDeadCreepsByName(colony.workers);
-        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_WORKER, colony.numDesiredWorkers - colony.workers.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            roleNames.COLONIST_WORKER,
+            colony.numDesiredWorkers - colony.workers.length,
+            false,
+            {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.workers.push(createResult.name);
@@ -121,7 +148,12 @@ SpawnRole.handleColonies = function(spawn) {
         Memphis.ensureValue("traders", [], colony);
         if (typeof colony.numDesiredTraders === "undefined" && colony.containersBuilt) colony.numDesiredTraders = 2;
         Memphis.removeDeadCreepsByName(colony.traders);
-        createResult = SpawnRole.checkAndBuildCreep(spawn, roleNames.COLONIST_TRADER, colony.numDesiredTraders - colony.traders.length, {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
+        createResult = SpawnRole.checkAndBuildCreep(
+            spawn,
+            roleNames.COLONIST_TRADER,
+            colony.numDesiredTraders - colony.traders.length,
+            false,
+            {home: spawn.id, colonyDirection: colony.direction, colonyIndex: colonyIndex});
         neededEnergy += createResult.e;
         if (typeof createResult.name === "string") {
             colony.traders.push(createResult.name);
@@ -139,7 +171,7 @@ SpawnRole.handleColonies = function(spawn) {
 * @param [additionalMemory=EmptyObject] {Object} Memory in addition to creep role that the creep should be given.
 * @returns {SpawnRole.CreateResult} {@link SpawnRole.CreateResult}
 */
-SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMemory) {
+SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, useSmallest, additionalMemory) {
     if (typeof additionalMemory === "undefined") additionalMemory = {};
     additionalMemory.role = roleName;
 
@@ -154,13 +186,11 @@ SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMe
         }
         
         // If we are really low on workers, we make a littler dude.
-        if (numNeeded > 1) {
+        if (numNeeded > 1 || useSmallest) {
             variant += numNeeded - 1;
-            if (variant >= creepBodies[roleName].length) variant = creepBodies[roleName].length - 1;
+            if (variant >= creepBodies[roleName].length || useSmallest) variant = creepBodies[roleName].length - 1;
             eNeeded = Utils.bodyCost(creepBodies[roleName][variant]);
         }
-        
-        // TODO: maybe re-add die out logic?
         
         if (spawn.energyIncludingExtentions() >= eNeeded) {
             errCode = spawn.createCreep(creepBodies[roleName][variant], undefined, additionalMemory);
@@ -170,4 +200,23 @@ SpawnRole.checkAndBuildCreep = function(spawn, roleName, numNeeded, additionalMe
         }
     }
     return {e: eNeeded, name: errCode};
+}
+
+SpawnRole.updateForControllerLevel = function(spawn) {
+    Memphis.ensureValue("updatedForControllerLevel", 0, spawn.memory);
+    if (spawn.room.controller.level == spawn.memory.updatedForControllerLevel) return;
+
+    // Update the creep numbers.
+    Memphis.ensureValue("numHarvesters", 0, spawn.memory);
+    Memphis.ensureValue("numBuilders", 0, spawn.memory);
+    Memphis.ensureValue("numUpgraders", 0, spawn.memory);
+    Memphis.ensureValue("numMilitia", 0, spawn.memory);
+    Memphis.ensureValue("numResourceRunners", 0, spawn.memory);
+    var updateNumbers = spawn.room.controller.getStandardCreepRoleNumbers();
+    spawn.memory.numHarvesters = updateNumbers.numHarvesters;
+    spawn.memory.numBuilders = updateNumbers.numBuilders;
+    spawn.memory.numUpgraders = updateNumbers.numUpgraders;
+    spawn.memory.numResourceRunners = updateNumbers.numResourceRunners;
+
+    spawn.memory.updatedForControllerLevel = spawn.room.controller.level;
 }

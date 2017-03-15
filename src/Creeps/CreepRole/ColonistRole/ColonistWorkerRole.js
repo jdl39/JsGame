@@ -73,16 +73,19 @@ ColonistWorkerRole.run = function(creep) {
     }
 
     // If we are not home, we must be at the colony room.
-        
+    var mySource = Game.getObjectById(creep.memory.mySource);
     // If we need more resources find the nearest source.
     if (creep.memory.harvesting) {
-        var harvestSource = creep.harvestFromNearestSource();
-        if (harvestSource instanceof Source) creep.memory.mySource = harvestSource.id;
+        // TODO: Replace this functionality with the skip-tick task queue upgrade.
+        if (mySource && mySource.energy > 0) creep.goToAndHarvestOrWithdrawEnergy(mySource);
+        else {
+            var harvestSource = creep.harvestFromNearestSource();
+            if (harvestSource instanceof Source) creep.memory.mySource = harvestSource.id;
+        }
         return;
     }
 
     // Otherwise, we are full on resources, and should maintain the colony.
-    var mySource = Game.getObjectById(creep.memory.mySource);
     // First, check for repairs
     if (creep.repairNearestStructureNeedingRepair((s) => { return s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER})) return;
     // Then, we want to make sure we build a road.

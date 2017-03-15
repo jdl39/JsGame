@@ -13,47 +13,47 @@ var CreepAction = function (actionType, target) {
 
 	/** @property {CreepAction.ActionType} The type of the action. */
 	this.actionType = actionType;
-
-	/** 
-	* Gets the target of the action
-	* @returns {RoomObject|RoomPosition|undefined} The action target.
-	*/
-	this.getTarget = function() {
-		if (this._targetIsId) return Game.getObjectById(this._target);
-		else return this._target;
-	}
-
-	/**
-	* Returns whether scheduling this action will cancel the other action.
-	* @param otherAction {CreepAction.ActionType|CreepAction} The action already scheduled.
-	* @returns {boolean} True if this action cancels the other.
-	*/
-	this.supercedes = function(otherAction) {
-		var otherActionType = (typeof otherAction === "string") otherAction : otherAction.actionType;
-		for (var i in CreepAction.priorityOrders) {
-			var priorityOrder = CreepAction.priorityOrders[i];
-			var thisActionIndex = -1;
-			var otherActionIndex = -1;
-			for (var j in priorityOrder) {
-				if (this.actionType == priorityOrder[j]) thisActionIndex = j;
-				if (otherActionType == priorityOrder[j]) otherActionIndex = j;
-			}
-			if (thisActionIndex != -1 && otherActionIndex != -1 && thisActionIndex <= otherActionIndex) return true;
-		}
-		return false;
-	}
-
-	/**
-	* Returns whether this action is canceled when the other action is scheduled.
-	* Needed because some actions are compatible, so both supercedes and isSupercededBy return false.
-	* @param otherAction {CreepAction.ActionType|CreepAction} The action already scheduled.
-	* @returns {boolean} True if the other action cancels this one.
-	*/
-	this.isSupercededBy = function(otherAction) {
-		if (typeof otherAction == "string") otherAction = new CreepAction(otherAction);
-		return otherAction.supercedes(this);
-	}
 };
+
+/** 
+* Gets the target of the action
+* @returns {RoomObject|RoomPosition|undefined} The action target.
+*/
+CreepAction.prototype.getTarget = function() {
+	if (this._targetIsId) return Game.getObjectById(this._target);
+	else return this._target;
+}
+
+/**
+* Returns whether scheduling this action will cancel the other action.
+* @param otherAction {CreepAction.ActionType|CreepAction} The action already scheduled.
+* @returns {boolean} True if this action cancels the other.
+*/
+CreepAction.prototype.supercedes = function(otherAction) {
+	var otherActionType = (typeof otherAction === "string") otherAction : otherAction.actionType;
+	for (var i in CreepAction.priorityOrders) {
+		var priorityOrder = CreepAction.priorityOrders[i];
+		var thisActionIndex = -1;
+		var otherActionIndex = -1;
+		for (var j in priorityOrder) {
+			if (this.actionType == priorityOrder[j]) thisActionIndex = j;
+			if (otherActionType == priorityOrder[j]) otherActionIndex = j;
+		}
+		if (thisActionIndex != -1 && otherActionIndex != -1 && thisActionIndex <= otherActionIndex) return true;
+	}
+	return false;
+}
+
+/**
+* Returns whether this action is canceled when the other action is scheduled.
+* Needed because some actions are compatible, so both supercedes and isSupercededBy return false.
+* @param otherAction {CreepAction.ActionType|CreepAction} The action already scheduled.
+* @returns {boolean} True if the other action cancels this one.
+*/
+CreepAction.prototype.isSupercededBy = function(otherAction) {
+	if (typeof otherAction == "string") otherAction = new CreepAction(otherAction);
+	return otherAction.supercedes(this);
+}
 
 /**
 * This class represents a creep move action. It exists because a creep
@@ -64,10 +64,12 @@ var CreepAction = function (actionType, target) {
 * @param target {Path|Direction|RoomObject|RoomPosition} The particular target used to initialize the move.
 */
 var CreepMoveAction = function (moveType, target) {
-	this.getDirection = function() {
+	CreepAction.prototype.constructor.apply(this, [CreepAction.ActionType.MOVE, target]);
 
-	}
+	/** @property {CreepMoveAction.MoveType} The type of move. */
+	this.moveType = moveType;
 }
+CreepMoveAction.prototype = Object.Create(CreepAction.prototype);
 
 /**
 * Enum for the different types of possible creep action.

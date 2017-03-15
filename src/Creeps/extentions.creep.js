@@ -211,6 +211,14 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterFunction, re
 }
 
 /**
+* Instructs the creep to mine the mineral in the room, if any.
+*/
+Creep.prototype.mineRoomMineral = function() {
+	var roomMineral = this.room.find(FIND_MINERALS)[0];
+	if (roomMineral && this.harvest(roomMineral) == ERR_NOT_IN_RANGE) this.moveTo(roomMineral); 
+}
+
+/**
 * Instructs the creep to attack the nearest enemy creep.
 * @param [filter] {filterFunction} A filter to apply to creep targeting.
 * @returns {?Creep} The target, if any. Null otherwise.
@@ -267,10 +275,11 @@ Creep.prototype.depositToNearestStructure = function(filterOrTargets, resourceTy
  
 /**
 * Instructs the creep to deposit into the nearest container or storage capable of receiving the deposit.
+* @param [resourceType=RESOURCE_ENERGY] One of the RESOURCE_* constants. The resource type to deposit.
 * @returns {?Structure} The structure we are attempting to deposit into/move to. Null if no target found.
 */
-Creep.prototype.depositToNearestContainer = function() {
- 	return this.depositToNearestStructure((s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)});
+Creep.prototype.depositToNearestContainer = function(resourceType) {
+ 	return this.depositToNearestStructure((s) => {return (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)}, resourceType);
 }
  
  /**

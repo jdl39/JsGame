@@ -32,6 +32,8 @@ SpawnRole.run = function(spawn) {
 
     // First make sure everything essential is spawned.
     neededEnergy += SpawnRole.spawnEssentialCreepTypes(spawn);
+
+    // Next check for mining.
     
     // Then, see if we have any colonies we need to upkeep.
     if (neededEnergy <= emergencyEnergy) {
@@ -78,6 +80,14 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
         }
     }
     return neededEnergy;
+}
+
+SpawnRole.checkAndBuildMiner = function(spawn) {
+    if (!spawn.memory.extractorBuilt && spawn.room.find(FIND_MY_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_EXTRACTOR}}).length) spawn.memory.extractorBuilt = true;
+    else return;
+
+    var minerNum = spawn.room.find(FIND_MY_CREEPS, {filter:(c) => {return c.memory.role == roleNames.MINER}}).length;
+    SpawnRole.checkAndBuildCreep(spawn, roleNames.MINER, 1 - minerNum);
 }
 
 /**

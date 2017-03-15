@@ -14,6 +14,8 @@ var roleNames = {
     /** @constant {string} */
     MILITIA: "militia",
     /** @constant {string} */
+    MINER: "miner"
+    /** @constant {string} */
     COLONIST_WORKER: "colonist.worker",
     /** @constant {string} */
     COLONIST_TRADER: "colonist.trader",
@@ -52,6 +54,9 @@ creepBodies[roleNames.UPGRADER] = [
     [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     [WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     [WORK, CARRY, MOVE]];
+creepBodies[roleNames.MINER] = [
+    [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]
+]
     
 creepBodies[roleNames.COLONIST_WORKER] = [
     [WORK, WORK, CARRY, CARRY, MOVE, MOVE]];

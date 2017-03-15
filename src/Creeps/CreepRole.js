@@ -26,6 +26,8 @@ CreepRole.findRole = function(creep) {
 			return UpgraderRole;
 		case roleNames.CLAIMER:
 			return ClaimerRole;
+		case roleNames.MINER:
+			return MinerRole;
 		default:
 			return UnknownCreepRole;
 	}

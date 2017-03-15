@@ -27,8 +27,18 @@ ResourceRunnerRole.run = function(creep) {
 	// Next, empty containers into storage.
 	var storage = creep.room.storage;
 	var fullContainers = creep.room.find(FIND_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_CONTAINER && _.sum(s.store) > 0}});
-	if (storage && fullContainers.length && _.sum(creep.carry) < creep.carryCapacity) {
-		creep.harvestOrWithdrawFromNearestSource(fullContainers, RESOURCE_ALL);
+	var containerToEmpty = null;
+	var mostFull = 0.0;
+	for (var i in fullContainers) {
+		var container = fullContainers[i];
+		var satiety = _.sum(container.store) * 1.0 / container.storeCapacity;
+		if (satiety > mostFull) {
+			mostFull = satiety;
+			containerToEmpty = container;
+		}
+	}
+	if (storage && containerToEmpty && _.sum(creep.carry) < creep.carryCapacity) {
+		creep.harvestOrWithdrawFromNearestSource([containerToEmpty], RESOURCE_ALL);
 		return;
 	}
 

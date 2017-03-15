@@ -151,6 +151,7 @@ Creep.prototype.harvestOrWithdrawEnergy = function(target) {
 * than harvest from nearest source, if we already have a source in mind.
 * @param target {Source|Resource|Structure} The target of the harvest/withdraw from.
 */
+// TODO: Allow this to take resource type or make a withdraw only variant; use in ResourceRunnerRole.
 Creep.prototype.goToAndHarvestOrWithdrawEnergy = function(target) {
 	if (this.harvestOrWithdrawEnergy(target) == ERR_NOT_IN_RANGE) this.moveTo(target);
 }
@@ -230,7 +231,7 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, r
     	else if (target instanceof Structure) {
     		if (resourceType == RESOURCE_ALL) {
     			if (target.store) {
-    				for (var rType in structure.store) this.withdraw(target, rType);
+    				for (var rType in target.store) this.withdraw(target, rType);
     			}
     		} else {
     			this.withdraw(target, resourceType);

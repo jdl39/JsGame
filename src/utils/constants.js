@@ -14,7 +14,7 @@ var roleNames = {
     /** @constant {string} */
     MILITIA: "militia",
     /** @constant {string} */
-    MINER: "miner"
+    MINER: "miner",
     /** @constant {string} */
     COLONIST_WORKER: "colonist.worker",
     /** @constant {string} */

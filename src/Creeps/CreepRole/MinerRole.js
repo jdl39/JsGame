@@ -9,7 +9,7 @@ MinerRole.prototype = Object.create(CreepRole.prototype);
 MinerRole.miningCheck = function(creep) {
     if (_.sum(creep.carry) == 0) {
         creep.memory.mining = true;
-    } else if (_sum(creep.carry) == creep.carryCapacity) {
+    } else if (_.sum(creep.carry) == creep.carryCapacity) {
         creep.memory.mining = false;
     }
 }

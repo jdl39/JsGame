@@ -116,9 +116,24 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
 	return withdrawOld.apply(this, [target, resourceType, amount]);
 }
 
+Creep.prototype.planAction = function(creepAction) {
+	for (var type in this.plannedActions) {
+		if (creepAction.supercedes(this.plannedActions[type])) delete this.plannedActions[type];
+		else if (creepAction.isSupercededBy(this.plannedActions[type])) return;
+	}
+	this.plannedActions[creepAction.actionType] = creepAction;
+}
+
 // ------------------------------------------------------
 // New methods
 // ------------------------------------------------------
+
+/**
+* The actions this creep plans to perform so far. A map from {@link CreepAction.ActionType}
+* to {@link CreepAction}. Only valid until end of tick.
+* @property plannedActions {Object}
+* @memberof Creep
+*/
 
 /**
 * Actions to be performed at the beginning of a tick.
@@ -129,6 +144,8 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
     // Doesn't work with movement...
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});
  }
+
+ Creep.prototype.getPlannedActions
  
  /**
  * Performs a harvest, withdraw, or pickup on the target, depending on its type.

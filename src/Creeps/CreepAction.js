@@ -9,7 +9,7 @@ var CreepAction = function (actionType, target) {
 	/** @private {RoomObject|RoomPosition} The target of the action. */
 	this._target = (target instanceof RoomObject) ? target.id : target;
 	/** @private {boolean} Whether or not this._target is the id of a RoomObject. */
-	this._targetIsId = (target instanceof RoomObject)
+	this._targetIsId = (target instanceof RoomObject);
 
 	/** @property {CreepAction.ActionType} The type of the action. */
 	this.actionType = actionType;
@@ -30,7 +30,7 @@ CreepAction.prototype.getTarget = function() {
 * @returns {boolean} True if this action cancels the other.
 */
 CreepAction.prototype.supercedes = function(otherAction) {
-	var otherActionType = (typeof otherAction === "string") otherAction : otherAction.actionType;
+	var otherActionType = (typeof otherAction === "string") ? otherAction : otherAction.actionType;
 	for (var i in CreepAction.priorityOrders) {
 		var priorityOrder = CreepAction.priorityOrders[i];
 		var thisActionIndex = -1;
@@ -69,7 +69,7 @@ var CreepMoveAction = function (moveType, target) {
 	/** @property {CreepMoveAction.MoveType} The type of move. */
 	this.moveType = moveType;
 }
-CreepMoveAction.prototype = Object.Create(CreepAction.prototype);
+CreepMoveAction.prototype = Object.create(CreepAction.prototype);
 
 /**
 * Enum for the different types of possible creep action.

@@ -20,6 +20,7 @@ var overrideCreepFunctionWithDefaultOverride = function(funcName) {
 }
 
 Creep.prototype.planAction = function(creepAction) {
+	Memphis.ensureValue("plannedActions", {}, this);
 	for (var type in this.plannedActions) {
 		if (creepAction.supercedes(this.plannedActions[type])) delete this.plannedActions[type];
 		else if (creepAction.isSupercededBy(this.plannedActions[type])) return;

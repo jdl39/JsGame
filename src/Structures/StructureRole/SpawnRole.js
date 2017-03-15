@@ -59,7 +59,7 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
     var numResourceRunners = spawn.memory.numResourceRunners;
 
 	// Creep types, in order of priority.
-	var creepTypes = [roleNames.HARVESTER, roleNames.MILITIA, roleNames.UPGRADER, roleNames.BUILDER, roleNames.RESOURCE_RUNNERS];
+	var creepTypes = [roleNames.HARVESTER, roleNames.MILITIA, roleNames.UPGRADER, roleNames.BUILDER, roleNames.RESOURCE_RUNNER];
     var creepNums = [numHarvesters, numMilitia, numUpgraders, numBuilders, numResourceRunners];
 
     var createResult = null;
@@ -72,7 +72,7 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
             spawn,
             creepType,
             creepNum - roleCreeps.length,
-            (creepType == roleNames.HARVESTER && roleCreeps.length == 0));
+            (creepType == roleNames.HARVESTER && roleCreeps.length == 0) /* TODO: Do we want this? kinda dangerous when we only have 2 harvesters... */);
         var neededForNextCreep = createResult.e;
         neededEnergy += neededForNextCreep;
 

@@ -11,7 +11,7 @@ ResourceRunnerRole.run = function(creep) {
 
 	// First, we want to keep the spawn and extensions and towers full.
 	var structuresThatNeedFilling = creep.room.find(FIND_MY_STRUCTURES, {filter:(s) => {
-		return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_TOWER) &&
+		return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) &&
 				s.energy < s.energyCapacity}});
 	if (structuresThatNeedFilling.length) {
 		runNeeded = true;
@@ -26,8 +26,8 @@ ResourceRunnerRole.run = function(creep) {
 
 	// Next, empty containers into storage.
 	var storage = creep.room.storage;
-	var fullContainers = creep.room.find(FIND_STRUCTURES, {filter:(s) => {s.structureType == STRUCTURE_CONTAINER && _.sum(s.store) > 0}});
-	if (storage && fullContainers.length && _.sum(creep.carry) == 0) {
+	var fullContainers = creep.room.find(FIND_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_CONTAINER && _.sum(s.store) > 0}});
+	if (storage && fullContainers.length && _.sum(creep.carry) < creep.carryCapacity) {
 		creep.harvestOrWithdrawFromNearestSource(fullContainers, RESOURCE_ALL);
 		return;
 	}

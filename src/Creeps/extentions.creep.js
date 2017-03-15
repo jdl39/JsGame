@@ -229,11 +229,11 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, r
     	else if (target instanceof Resource) this.pickup(target);
     	else if (target instanceof Structure) {
     		if (resourceType == RESOURCE_ALL) {
-    			if (structure.store) {
-    				for (var rType in structure.store) creep.withdraw(structure, rType);
+    			if (target.store) {
+    				for (var rType in structure.store) this.withdraw(target, rType);
     			}
     		} else {
-    			creep.withdraw(structure, resourceType);
+    			this.withdraw(target, resourceType);
     		}
     	}
     }

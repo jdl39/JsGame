@@ -84,11 +84,11 @@ SpawnRole.spawnEssentialCreepTypes = function(spawn) {
 }
 
 SpawnRole.checkAndBuildMiner = function(spawn) {
-    if (!spawn.memory.extractorBuilt && spawn.room.find(FIND_MY_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_EXTRACTOR}}).length) spawn.memory.extractorBuilt = true;
+    if (spawn.memory.extractorBuilt || spawn.room.find(FIND_MY_STRUCTURES, {filter:(s) => {return s.structureType == STRUCTURE_EXTRACTOR}}).length) spawn.memory.extractorBuilt = true;
     else return;
 
     var mineral = spawn.room.find(FIND_MINERALS)[0];
-    if (mineral && mineralAmount > 0) {
+    if (mineral && mineral.mineralAmount > 0) {
         var minerNum = spawn.room.find(FIND_MY_CREEPS, {filter:(c) => {return c.memory.role == roleNames.MINER}}).length;
         SpawnRole.checkAndBuildCreep(spawn, roleNames.MINER, 1 - minerNum);
     }

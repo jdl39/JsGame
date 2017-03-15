@@ -68,8 +68,28 @@ overrideCreepFunctionWithDefaultOverride("heal");
 var creepMoveOld = Creep.prototype.move;
 Creep.prototype.move = function(direction) {
 	var retVal = creepMoveOld.apply(this, [direction]);
+
+	// If there is a stationary creep in our way, we need to ask him to move.
+	var newPosition = this.pos.getPosForDirection(direction);
+	var creepAtPos = null;
+	if (newPosition) creepAtPos = newPosition.lookFor(LOOK_CREEPS)[0];
+	if (creepAtPos && (!creepAtPos.plannedActions || !creepAtPos.plannedActions["move"])) {
+		Creep.pushCreepOutOfTheWay(creepAtPos, direction);
+	}
+
 	if (retVal == OK) this.planAction(new CreepMoveAction("move", direction));
 	return retVal;
+}
+
+Creep.pushCreepOutOfTheWay = function(creep, direction) {
+	var pushDirections = Utils.pushDirections(direction);
+	for (var i in pushDirections) {
+		var pDirection = pushDirections[i];
+		if (creep.pos.getPosForDirection(pDirection).isWalkable()) {
+			creep.move(pDirection);
+			return;
+		}
+	}
 }
 
 // moveByPath
@@ -267,7 +287,7 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, r
     var target = this.pos.findClosestByPath(intentableTargets, {ignoreCreeps:true});
     if (!target) target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
     
-    if (target && !this.pos.isNearTo(target)) this.moveTo(target);
+    if (target && !this.pos.isNearTo(target)) this.moveTo(target, {ignoreCreeps:true});
     else {
     	if (target instanceof Source) this.harvest(target);
     	else if (target instanceof Resource) this.pickup(target);

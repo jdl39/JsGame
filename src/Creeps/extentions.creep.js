@@ -64,8 +64,10 @@ Creep.prototype.moveTo = function(arg1, arg2, arg3) {
 
 	if (useArg2) {
 		arg2.visualizePathStyle = {stroke: this.roleColor()};
+		if (typeof arg2.maxRooms == "undefined") arg2.maxRooms = 1;
 	} else {
 		arg3.visualizePathStyle = {stroke: this.roleColor()};
+		if (typeof arg2.maxRooms == "undefined") arg2.maxRooms = 1;
 	}
 	return moveToOld.apply(this, [arg1, arg2, arg3]);
 }

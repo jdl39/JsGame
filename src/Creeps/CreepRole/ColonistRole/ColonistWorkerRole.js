@@ -24,7 +24,7 @@ ColonistWorkerRole.buildUnbuiltColonyRoad = function(creep) {
         if (mySource) { // TODO: Fix this hack! If no one is in the room with the source, we forget where it is.
             roadSite = SiteFinder.continueRoadTo(mySource.pos, homeSpawn.pos);
             if (roadSite) {
-                creep.moveTo(roadSite);
+                creep.moveTo(roadSite, {maxRooms:16});
                 return roadSite;
             } else {
                 Memphis.markSpawnHasRoadsTo(mySource);
@@ -100,7 +100,7 @@ ColonistWorkerRole.run = function(creep) {
     if (creep.buildNearestSite((s) => {return s.structureType == STRUCTURE_CONTAINER})) return;
     // Then, we should make sure we are close to our source.
     if (!creep.pos.isNearTo(mySource.pos)) {
-        creep.moveTo(mySource);
+        creep.moveTo(mySource, {maxRooms:16});
         return;
     }
     // Then, we deposit into our container (build one if necessary).

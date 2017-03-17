@@ -34,6 +34,6 @@ ColonistTraderRole.run = function(creep) {
         
     if (!creep.memory.fetching) {
         if (ColonistRole.inHomeRoom(creep)) creep.depositToNearestContainer();
-        else creep.moveTo(homeSpawn);
+        else creep.moveTo(homeSpawn, {maxRooms:16});
     }
 }

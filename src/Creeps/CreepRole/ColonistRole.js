@@ -33,6 +33,6 @@ ColonistRole.goToColony = function(creep) {
             
     if (exit !== null) {
         if (exit === creep.pos) creep.move(colonyDirection);
-        else creep.moveTo(exit);
+        else creep.moveTo(exit, {maxRooms: 16});
     }
 }

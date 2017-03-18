@@ -6,48 +6,108 @@
 // ------------------------------------------------------
 // Method overrides
 // ------------------------------------------------------
-// attack
-var attackOld = Creep.prototype.attack;
-Creep.prototype.attack = function(target) {
-	this.memory.intention = target.id;
-	return attackOld.apply(this, [target]);
+
+// This is only for functions in which the first argument is a RoomObject,
+// and if a successful return type is OK.
+var overrideCreepFunctionWithDefaultOverride = function(funcName) {
+	var oldFunc = Creep.prototype[funcName];
+	Creep.prototype[funcName] = function() {
+		this.memory.intention = arguments[0].id;
+		var retVal = oldFunc.apply(this, arguments);
+		if (retVal == OK) this.planAction(new CreepAction(funcName, arguments[0]));
+		return retVal;
+	}
 }
 
-// TODO: attackController
+Creep.prototype.planAction = function(creepAction) {
+	Memphis.ensureValue("plannedActions", {}, this);
+	var toDelete = [];
+	for (var type in this.plannedActions) {
+		if (creepAction.supercedes(this.plannedActions[type])) toDelete.push(type);
+		else if (creepAction.isSupercededBy(this.plannedActions[type])) return;
+	}
+
+	for (var i in toDelete) {
+		delete this.plannedActions[toDelete[i]];
+	}
+
+	this.plannedActions[creepAction.actionType] = creepAction;
+}
+
+// attack
+overrideCreepFunctionWithDefaultOverride("attack");
+
+// attackController
+overrideCreepFunctionWithDefaultOverride("attackController");
 
 // build
-var buildOld = Creep.prototype.build;
-Creep.prototype.build = function(target) {
-	this.memory.intention = target.id;
-	return buildOld.apply(this, [target]);
-}
+overrideCreepFunctionWithDefaultOverride("build");
 
 // TODO: cancelOrder
-// TODO: claimController
-// TODO: dismantle
-// TODO: drop
-// TODO: generateSafeMode
+
+// attackController
+overrideCreepFunctionWithDefaultOverride("attackController");
+
+// dismantle
+overrideCreepFunctionWithDefaultOverride("dismantle");
+
+// drop
+var creepOldDrop = Creep.prototype.drop;
+Creep.prototype.drop = function(resourceType, amount) {
+	var retVal = creepOldDrop.apply(this, arguments);
+	if (retVal == OK) this.planAction("drop", resourceType);
+	return retVal;
+}
+
+// generateSafeMode
+overrideCreepFunctionWithDefaultOverride("generateSafeMode");
+
 // TODO: getActiveBodyParts?
 
 // harvest
-var harvestOld = Creep.prototype.harvest;
-Creep.prototype.harvest = function(target) {
-	this.memory.intention = target.id;
-	return harvestOld.apply(this, [target]);
-}
+overrideCreepFunctionWithDefaultOverride("harvest");
 
-// TODO: heal
+// heal
+overrideCreepFunctionWithDefaultOverride("heal");
 
 // move
-var moveOld = Creep.prototype.move;
+var creepMoveOld = Creep.prototype.move;
 Creep.prototype.move = function(direction) {
-	return moveOld.apply(this, [direction]);
+	var retVal = creepMoveOld.apply(this, [direction]);
+
+	// If there is a stationary creep in our way, we need to ask him to move.
+	var newPosition = this.pos.getPosForDirection(direction);
+	var creepAtPos = null;
+	if (newPosition) creepAtPos = newPosition.lookFor(LOOK_CREEPS)[0];
+	if (creepAtPos && (!creepAtPos.plannedActions || !creepAtPos.plannedActions["move"])) {
+		Creep.pushCreepOutOfTheWay(creepAtPos, direction);
+	}
+
+	if (retVal == OK) this.planAction(new CreepMoveAction("move", direction));
+	return retVal;
 }
 
-// TODO: moveByPath
+Creep.pushCreepOutOfTheWay = function(creep, fromDirection) {
+	var pushDirections = Utils.pushDirections(fromDirection);
+	for (var i in pushDirections) {
+		var pDirection = pushDirections[i];
+		if (creep.pos.getPosForDirection(pDirection).isWalkable()) {
+			creep.move(pDirection);
+			return;
+		}
+	}
+}
+
+// moveByPath
+var creepMoveByPathOld = Creep.prototype.moveByPath;
+Creep.prototype.moveByPath = function(path) {
+	var retVal = creepMoveByPathOld.apply(this, [path]);
+	if (retVal == OK) this.planAction(new CreepMoveAction("moveByPath", path));
+	return retVal;
+}
 
 // moveTo
-var moveToOld = Creep.prototype.moveTo;
+var creepMoveToOld = Creep.prototype.moveTo;
 Creep.prototype.moveTo = function(arg1, arg2, arg3) {
 	if (arg1 instanceof RoomObject) {
 		this.memory.intention = arg1.id;
@@ -69,58 +129,65 @@ Creep.prototype.moveTo = function(arg1, arg2, arg3) {
 		arg3.visualizePathStyle = {stroke: this.roleColor()};
 		if (typeof arg2.maxRooms == "undefined") arg2.maxRooms = 1;
 	}
-	return moveToOld.apply(this, [arg1, arg2, arg3]);
+
+	var retVal = creepMoveToOld.apply(this, [arg1, arg2, arg3]);
+	var target = (typeof arg1 == "number") ? this.room.getPositionAt(arg1, arg2) : arg1;
+	if (retVal == OK) this.planAction(new CreepMoveAction("moveTo", target));
+	return retVal;
 }
 
 // TODO: notifyWhenAttacked
 
 // pickup
-var pickupOld = Creep.prototype.pickup;
-Creep.prototype.pickup = function(target) {
-	this.memory.intention = target.id;
-	return pickupOld.apply(this, [target]);
-}
+overrideCreepFunctionWithDefaultOverride("pickup");
 
-// TODO: rangedAttack
-// TODO: rangedHeal
-// TODO: rangedMassAttack
+// rangedAttack
+overrideCreepFunctionWithDefaultOverride("rangedAttack");
+
+// rangedHeal
+overrideCreepFunctionWithDefaultOverride("rangedHeal");
+
+// rangedMassAttack
+var creepOldRangedMassAttack = Creep.prototype.rangedMassAttack;
+Creep.prototype.rangedMassAttack = function() {
+	var retVal = creepOldRangedMassAttack.apply(this, arguments);
+	if (retVal == OK) this.planAction(new CreepAction("rangedMassAttack"));
+}
 
 // repair
-var repairOld = Creep.prototype.repair;
-Creep.prototype.repair = function(target) {
-	this.memory.intention = target.id;
-	return repairOld.apply(this, [target]);
-}
+overrideCreepFunctionWithDefaultOverride("repair");
 
-// TODO: reserveController
+// reserveController
+overrideCreepFunctionWithDefaultOverride("reserveController");
+
 // TODO: say
-// TODO: signController
-// TODO: suicide
+
+// signController
+overrideCreepFunctionWithDefaultOverride("signController");
+
+// suicide
+overrideCreepFunctionWithDefaultOverride("suicide");
 
 // transfer
-var transferOld = Creep.prototype.transfer;
-Creep.prototype.transfer = function(target, resourceType, amount) {
-	this.memory.intention = target.id;
-	return transferOld.apply(this, [target, resourceType, amount]);
-}
+overrideCreepFunctionWithDefaultOverride("transfer");
 
 // upgradeController
-var upgradeControllerOld = Creep.prototype.upgradeController;
-Creep.prototype.upgradeController = function(target) {
-	this.memory.intention = target.id;
-	return upgradeControllerOld.apply(this, [target]);
-}
+overrideCreepFunctionWithDefaultOverride("upgradeController");
 
 // withdraw
-var withdrawOld = Creep.prototype.withdraw;
-Creep.prototype.withdraw = function(target, resourceType, amount) {
-	this.memory.intention = target.id;
-	return withdrawOld.apply(this, [target, resourceType, amount]);
-}
+overrideCreepFunctionWithDefaultOverride("withdraw");
 
 // ------------------------------------------------------
 // New methods
 // ------------------------------------------------------
+
+/**
+* The actions this creep plans to perform so far. A map from {@link CreepAction.ActionType}
+* to {@link CreepAction}. Only valid until end of tick.
+* @property plannedActions {Object}
+* @readonly
+* @memberof Creep
+*/
 
 /**
 * Actions to be performed at the beginning of a tick.
@@ -131,6 +198,8 @@ Creep.prototype.withdraw = function(target, resourceType, amount) {
     // Doesn't work with movement...
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});
  }
+
+ Creep.prototype.getPlannedActions
  
  /**
  * Performs a harvest, withdraw, or pickup on the target, depending on its type.
@@ -226,7 +295,7 @@ Creep.prototype.harvestOrWithdrawFromNearestSource = function(filterOrTargets, r
     var target = this.pos.findClosestByPath(intentableTargets, {ignoreCreeps:true});
     if (!target) target = this.pos.findClosestByPath(energyTargets, {ignoreCreeps:true});
     
-    if (target && !this.pos.isNearTo(target)) this.moveTo(target);
+    if (target && !this.pos.isNearTo(target)) this.moveTo(target, {ignoreCreeps:true});
     else {
     	if (target instanceof Source) this.harvest(target);
     	else if (target instanceof Resource) this.pickup(target);

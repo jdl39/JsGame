@@ -243,3 +243,24 @@ Utils.getAllDepositCapableStructures = function(room, resourceType, filter) {
     if (typeof filter !== "undefined") depositableStructures = _.filter(depositableStructures, filter);
     return depositableStructures;
 }
+
+Utils.pushDirections = function(direction) {
+    switch(direction) {
+        case TOP:
+            return [LEFT, RIGHT, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, BOTTOM, TOP];
+        case TOP_RIGHT:
+            return [TOP_LEFT, BOTTOM_RIGHT, TOP, RIGHT, LEFT, BOTTOM, BOTTOM_LEFT, TOP_RIGHT];
+        case TOP_LEFT:
+            return [BOTTOM_LEFT, TOP_RIGHT, LEFT, TOP, BOTTOM, RIGHT, BOTTOM_RIGHT, TOP_LEFT];
+        case LEFT:
+            return [BOTTOM, TOP, BOTTOM_LEFT, TOP_LEFT, BOTTOM_RIGHT, TOP_RIGHT, RIGHT, LEFT];
+        case RIGHT:
+            return [TOP, BOTTOM, TOP_RIGHT, BOTTOM_RIGHT, TOP_LEFT, BOTTOM_LEFT, LEFT, RIGHT];
+        case BOTTOM:
+            return [RIGHT, LEFT, BOTTOM_RIGHT, BOTTOM_LEFT, TOP_RIGHT, TOP_LEFT, TOP, BOTTOM];
+        case BOTTOM_RIGHT:
+            return [TOP_RIGHT, BOTTOM_LEFT, RIGHT, BOTTOM, TOP, LEFT, TOP_LEFT, BOTTOM_RIGHT];
+        case BOTTOM_LEFT:
+            return [BOTTOM_RIGHT, TOP_LEFT, BOTTOM, LEFT, RIGHT, TOP, TOP_RIGHT, BOTTOM_LEFT];
+    }
+}

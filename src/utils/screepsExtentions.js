@@ -100,6 +100,64 @@ Room.prototype.find = function(type, opts) {
 
 // --------------------------------------------------------------
 
+// RoomPosition extentions ----------------------------------------
+
+/**
+* Gets the square one step in the given direction.
+* @param direction One of the direction constants.
+* @returns {?RoomPosition} The position in that direction, or null if on the edge.
+*/
+RoomPosition.prototype.getPosForDirection = function(direction) {
+    var newX = this.x;
+    var newY = this.y;
+    switch (direction) {
+        case TOP:
+            newY -= 1;
+            break;
+        case TOP_RIGHT:
+            newX += 1;
+            newY -= 1;
+            break;
+        case TOP_LEFT:
+            newX -= 1;
+            newY -= 1;
+            break;
+        case RIGHT:
+            newX += 1;
+            break;
+        case LEFT:
+            newX -= 1;
+            break;
+        case BOTTOM:
+            newY += 1;
+            break;
+        case BOTTOM_RIGHT:
+            newX += 1;
+            newY += 1;
+            break;
+        case BOTTOM_LEFT:
+            newX -= 1;
+            newY += 1;
+            break;
+        default:
+            throw new Error("getPosForDirection UnknownDirection " + direction);
+    }
+
+    if (newX < 0 || newX >= 50 || newY < 0 || newY >= 50) return null;
+    return new RoomPosition(newX, newY, this.roomName);
+}
+
+RoomPosition.prototype.isWalkable = function() {
+    var objects = this.look();
+    for (var i in objects) {
+        var object = objects[i];
+        if (object.type == LOOK_STRUCTURES && !object.structure.isWalkable()) return false;
+        if (object.type == LOOK_TERRAIN && object.terrain == "wall") return false;
+    }
+    return true;
+}
+// ----------------------------------------------------------------
+
 // Resource extentions ------------------------------------------
 Resource.prototype.intentAllowed = function() {
     var creepsIntent = Utils.creepsIntentOn(this);

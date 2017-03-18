@@ -112,7 +112,7 @@ CreepMoveAction.MoveType = {
 }
 
 CreepAction.priorityOrders = [
-	[CreepAction.ActionType.HEAL, CreepAction.ActionType.RANGED_HEAL, CreepAction.ActionType.ATTACK_CONTROLLER, CreepAction.ActionType.DISMANTLE, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.ATTACK, CreepAction.ActionType.HARVEST],
-	[CreepAction.ActionType.RANGED_HEAL, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.RANGED_MASS_ATTACK, CreepAction.ActionType.RANGED_ATTACK],
-	[CreepAction.ActionType.DROP, CreepAction.ActionType.TRANSFER, CreepAction.ActionType.WITHDRAW, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.UPGRADE_CONTROLLER]
+	[CreepAction.ActionType.HEAL, CreepAction.ActionType.RANGED_HEAL, CreepAction.ActionType.ATTACK_CONTROLLER, CreepAction.ActionType.DISMANTLE, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.ATTACK, CreepAction.ActionType.HARVEST, CreepAction.ActionType.MOVE],
+	[CreepAction.ActionType.RANGED_HEAL, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.RANGED_MASS_ATTACK, CreepAction.ActionType.RANGED_ATTACK, CreepAction.ActionType.MOVE],
+	[CreepAction.ActionType.DROP, CreepAction.ActionType.TRANSFER, CreepAction.ActionType.WITHDRAW, CreepAction.ActionType.REPAIR, CreepAction.ActionType.BUILD, CreepAction.ActionType.UPGRADE_CONTROLLER, CreepAction.ActionType.MOVE]
 ]

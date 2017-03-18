@@ -19,12 +19,43 @@ var overrideCreepFunctionWithDefaultOverride = function(funcName) {
 	}
 }
 
+Creep.prototype.shouldYieldToAction = function(type) {
+	if (type == CreepAction.ActionType.MOVE) {
+		Memphis.ensureValue("timesIgnoredPush", 0, this.memory);
+		this.memory.timesIgnoredPush++;
+		if (this.memory.timesIgnoredPush > miscConstants.CREEP_NUM_TIMES_CAN_IGNORE_PUSH) {
+			delete this.memory.timesIgnoredPush;
+			this.memory.yieldingToPush = true;
+		}
+		if (this.memory.yieldingToPush) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 Creep.prototype.planAction = function(creepAction) {
 	Memphis.ensureValue("plannedActions", {}, this);
+	var toDelete = [];
 	for (var type in this.plannedActions) {
-		if (creepAction.supercedes(this.plannedActions[type])) delete this.plannedActions[type];
-		else if (creepAction.isSupercededBy(this.plannedActions[type])) return;
+		if (creepAction.supercedes(this.plannedActions[type])) {
+			if (this.shouldYieldToAction(type)) {
+				this.cancelOrder(creepAction.actionType);
+				return;
+			} else toDelete.push(type);
+
+		} else if (creepAction.isSupercededBy(this.plannedActions[type])) {
+			if (this.shouldYieldToAction(creepAction.actionType)) toDelete.push(type);
+			else return;
+		}
 	}
+
+	for (var i in toDelete) {
+		this.cancelOrder(toDelete[i]);
+		delete this.plannedActions[toDelete[i]];
+	}
+
 	this.plannedActions[creepAction.actionType] = creepAction;
 }
 
@@ -81,8 +112,8 @@ Creep.prototype.move = function(direction) {
 	return retVal;
 }
 
-Creep.pushCreepOutOfTheWay = function(creep, direction) {
-	var pushDirections = Utils.pushDirections(direction);
+Creep.pushCreepOutOfTheWay = function(creep, fromDirection) {
+	var pushDirections = Utils.pushDirections(fromDirection);
 	for (var i in pushDirections) {
 		var pDirection = pushDirections[i];
 		if (creep.pos.getPosForDirection(pDirection).isWalkable()) {
@@ -186,6 +217,7 @@ overrideCreepFunctionWithDefaultOverride("withdraw");
 */
  Creep.prototype.onTick = function() {
     this.memory.intention = null;
+    this.memory.yieldingToPush = false;
     
     // Doesn't work with movement...
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});

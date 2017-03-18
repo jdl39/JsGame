@@ -137,8 +137,6 @@ var visualConstants = {
 */
 var miscConstants = {
     CACHE_LIFETIME: 5000,
-
-    CREEP_NUM_TIMES_CAN_IGNORE_PUSH: 5,
 }
 
 /**

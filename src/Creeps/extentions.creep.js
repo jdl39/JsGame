@@ -19,40 +19,15 @@ var overrideCreepFunctionWithDefaultOverride = function(funcName) {
 	}
 }
 
-Creep.prototype.shouldYieldToAction = function(type) {
-	if (type == CreepAction.ActionType.MOVE) {
-		Memphis.ensureValue("timesIgnoredPush", 0, this.memory);
-		this.memory.timesIgnoredPush++;
-		if (this.memory.timesIgnoredPush > miscConstants.CREEP_NUM_TIMES_CAN_IGNORE_PUSH) {
-			delete this.memory.timesIgnoredPush;
-			this.memory.yieldingToPush = true;
-		}
-		if (this.memory.yieldingToPush) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 Creep.prototype.planAction = function(creepAction) {
 	Memphis.ensureValue("plannedActions", {}, this);
 	var toDelete = [];
 	for (var type in this.plannedActions) {
-		if (creepAction.supercedes(this.plannedActions[type])) {
-			if (this.shouldYieldToAction(type)) {
-				this.cancelOrder(creepAction.actionType);
-				return;
-			} else toDelete.push(type);
-
-		} else if (creepAction.isSupercededBy(this.plannedActions[type])) {
-			if (this.shouldYieldToAction(creepAction.actionType)) toDelete.push(type);
-			else return;
-		}
+		if (creepAction.supercedes(this.plannedActions[type])) toDelete.push(type);
+		else if (creepAction.isSupercededBy(this.plannedActions[type])) return;
 	}
 
 	for (var i in toDelete) {
-		this.cancelOrder(toDelete[i]);
 		delete this.plannedActions[toDelete[i]];
 	}
 
@@ -217,7 +192,6 @@ overrideCreepFunctionWithDefaultOverride("withdraw");
 */
  Creep.prototype.onTick = function() {
     this.memory.intention = null;
-    this.memory.yieldingToPush = false;
     
     // Doesn't work with movement...
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});

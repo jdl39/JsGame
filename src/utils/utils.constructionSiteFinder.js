@@ -181,7 +181,7 @@ SiteFinder.findSiteForStructure = function(room, structureType) {
 
 var _continueRoadToInSameRoom = function(startPos, endPos) {
 	// Get the path.
-	var path = startPos.findPathTo(endPos, {ignoreCreeps:true});
+	var path = startPos.findPathTo(endPos, {ignoreCreeps:true, maxRooms:1});
 
     for (var pathIndex in path) {
 	    var roadNeeded = true;

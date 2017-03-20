@@ -43,7 +43,12 @@ overrideCreepFunctionWithDefaultOverride("attackController");
 // build
 overrideCreepFunctionWithDefaultOverride("build");
 
-// TODO: cancelOrder
+// cancelOrder
+var creepOldCancelOrder = Creep.prototype.cancelOrder;
+Creep.prototype.cancelOrder = function(orderType) {
+	delete this.plannedActions[orderType];
+	creepOldCancelOrder.apply(this, [orderType]);
+}
 
 // attackController
 overrideCreepFunctionWithDefaultOverride("attackController");
@@ -73,18 +78,24 @@ overrideCreepFunctionWithDefaultOverride("heal");
 // move
 var creepMoveOld = Creep.prototype.move;
 Creep.prototype.move = function(direction) {
+	// We need to declare our intention to move first, to avoid a possible recursive loop. (We push a creep that pushes a creep that pushes a creep that pushes us).
+	this.planAction(new CreepMoveAction("move", direction));
+
 	// If there is a stationary creep in our way, we need to ask him to move.
 	var newPosition = this.pos.getPosForDirection(direction);
 	var creepAtPos = null;
 	if (newPosition) creepAtPos = newPosition.lookFor(LOOK_CREEPS)[0];
 	if (creepAtPos && (!creepAtPos.plannedActions || !creepAtPos.plannedActions["move"])) {
-		if (creepAtPos.hasPlannedAction()) return ERR_CANNOT_PUSH;
+		if (creepAtPos.hasPlannedAction()) {
+			this.cancelOrder("move");
+			return ERR_CANNOT_PUSH;
+		}
 		Creep.pushCreepOutOfTheWay(creepAtPos, direction);
 	}
 
 	var retVal = creepMoveOld.apply(this, [direction]);
 
-	if (retVal == OK) this.planAction(new CreepMoveAction("move", direction));
+	if (retVal !== OK) this.cancelOrder("move");
 	return retVal;
 }
 

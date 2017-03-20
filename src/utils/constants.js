@@ -144,3 +144,9 @@ var miscConstants = {
 * @constant
 */
 const RESOURCE_ALL = "resourceAll";
+
+/**
+* Error returned by a move when we try to push a creep that is busy with an action.
+* @constant
+*/
+const ERR_CANNOT_PUSH = "cannotPush"

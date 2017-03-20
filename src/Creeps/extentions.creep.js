@@ -73,15 +73,16 @@ overrideCreepFunctionWithDefaultOverride("heal");
 // move
 var creepMoveOld = Creep.prototype.move;
 Creep.prototype.move = function(direction) {
-	var retVal = creepMoveOld.apply(this, [direction]);
-
 	// If there is a stationary creep in our way, we need to ask him to move.
 	var newPosition = this.pos.getPosForDirection(direction);
 	var creepAtPos = null;
 	if (newPosition) creepAtPos = newPosition.lookFor(LOOK_CREEPS)[0];
 	if (creepAtPos && (!creepAtPos.plannedActions || !creepAtPos.plannedActions["move"])) {
+		if (creepAtPos.hasPlannedAction()) return ERR_CANNOT_PUSH;
 		Creep.pushCreepOutOfTheWay(creepAtPos, direction);
 	}
+
+	var retVal = creepMoveOld.apply(this, [direction]);
 
 	if (retVal == OK) this.planAction(new CreepMoveAction("move", direction));
 	return retVal;
@@ -131,6 +132,16 @@ Creep.prototype.moveTo = function(arg1, arg2, arg3) {
 	}
 
 	var retVal = creepMoveToOld.apply(this, [arg1, arg2, arg3]);
+
+	if (retVal == ERR_CANNOT_PUSH) {
+		// Retry by not ignoring creeps.
+		if ((useArg2 && arg2.ignoreCreeps) || (!useArg2 && arg3.ignoreCreeps)) {
+			if (useArg2) arg2.ignoreCreeps = false;
+			else arg3.ignoreCreeps = false;
+			retVal = creepMoveToOld.apply(this, [arg1, arg2, arg3]);
+		}
+	}
+
 	var target = (typeof arg1 == "number") ? this.room.getPositionAt(arg1, arg2) : arg1;
 	if (retVal == OK) this.planAction(new CreepMoveAction("moveTo", target));
 	return retVal;
@@ -199,7 +210,16 @@ overrideCreepFunctionWithDefaultOverride("withdraw");
     //this.room.visual.circle(this.pos, {fill: this.roleColor()});
  }
 
- Creep.prototype.getPlannedActions
+/**
+* Returns true if the creep has planned a non-move action.
+* @returns {boolean} True if a non-move is planned.
+*/
+Creep.prototype.hasPlannedAction = function() {
+	for (var aType in this.plannedActions) {
+		if (aType != CreepAction.ActionType.MOVE) return true;
+	}
+	return false;
+}
  
  /**
  * Performs a harvest, withdraw, or pickup on the target, depending on its type.
